@@ -1,9 +1,17 @@
+// =========================
+// Input Manager
+// =========================
+
 const keys = {};
 
-document.addEventListener("keydown", (e) => {
-    keys[e.key] = true;
+window.addEventListener("keydown", (event) => {
+
+    keys[event.key] = true;
+
 });
 
-document.addEventListener("keyup", (e) => {
-    keys[e.key] = false;
+window.addEventListener("keyup", (event) => {
+
+    keys[event.key] = false;
+
 });

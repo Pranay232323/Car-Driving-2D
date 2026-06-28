@@ -1,16 +1,28 @@
+// =============================
+// Canvas
+// =============================
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-function resize(){
+// =============================
+// Resize
+// =============================
+
+function resizeCanvas(){
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
 }
 
-window.addEventListener("resize",resize);
+window.addEventListener("resize", resizeCanvas);
 
-resize();
+resizeCanvas();
+
+// =============================
+// Game Loop
+// =============================
 
 function gameLoop(){
 
@@ -21,5 +33,3 @@ function gameLoop(){
     requestAnimationFrame(gameLoop);
 
 }
-
-gameLoop();

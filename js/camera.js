@@ -3,16 +3,20 @@
 // =========================
 
 const camera = {
+
     x: 0,
     y: 0
+
 };
 
-function updateCamera() {
+function updateCamera(targetX = 0){
 
-    camera.x = currentVehicle.x - canvas.width / 3;
+    camera.x = targetX - canvas.width / 3;
 
-    if (camera.x < 0) {
+    if(camera.x < 0){
+
         camera.x = 0;
+
     }
 
 }

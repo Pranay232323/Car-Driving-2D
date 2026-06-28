@@ -1,17 +1,15 @@
-function updateGame() {
+function updateGame(){
 
     currentVehicle.update();
 
-    updateCamera();
-
-    extendTerrain();
-
-    cleanupTerrain();
+    updateCamera(currentVehicle.x);
 
 }
 
-function drawGame() {
+function drawGame(){
 
     renderer.render();
 
 }
+
+gameLoop();
