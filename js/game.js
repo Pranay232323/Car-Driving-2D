@@ -1,9 +1,17 @@
-function updateGame(){
+function updateGame() {
+
+    currentVehicle.update();
+
+    updateCamera();
+
+    extendTerrain();
+
+    cleanupTerrain();
 
 }
 
-function drawGame(){
+function drawGame() {
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    renderer.render();
 
 }
