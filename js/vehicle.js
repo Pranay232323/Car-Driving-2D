@@ -79,6 +79,22 @@ currentVehicle.update = function () {
     );
 
     this.body.y = ground - 65;
+    // Rear wheel ground
+    const rearGround = getGroundHeight(
+        this.body.x + this.rearWheel.offsetX
+    );
+
+    // Front wheel ground
+    const frontGround = getGroundHeight(
+        this.body.x + this.frontWheel.offsetX
+    );
+
+    // Calculate body angle
+    this.body.angle = Math.atan2(
+        frontGround - rearGround,
+        this.frontWheel.offsetX - this.rearWheel.offsetX
+    );
+    console.log(this.body.angle);
 
     this.frontWheel.rotation += this.speed * 0.08;
     this.rearWheel.rotation += this.speed * 0.08;

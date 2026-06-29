@@ -36,6 +36,11 @@ function drawUI() {
         20,
         70
     );
+    ctx.fillText(
+    "Angle: " + currentVehicle.body.angle.toFixed(2),
+    20,
+    105
+    );
 
     // FPS
     ctx.fillText(
