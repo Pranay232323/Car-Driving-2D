@@ -33,9 +33,16 @@ function generateTerrain(){
 
 function extendTerrain() {
 
+    console.log(
+        "Last X:",
+        terrain[terrain.length - 1].x,
+        "Car X:",
+        currentVehicle.body.x
+    );
+
     while (
         terrain[terrain.length - 1].x <
-        currentVehicle.x + canvas.width * 2
+        currentVehicle.body.x + canvas.width * 2
     ) {
 
         const last = terrain[terrain.length - 1];
@@ -46,14 +53,12 @@ function extendTerrain() {
         if (y > 500) y = 500;
 
         terrain.push({
-
             x: last.x + SEGMENT,
             y: y
-
         });
 
+        console.log("New terrain added!");
     }
-
 }
 // =========================
 // Remove Old Terrain
@@ -65,7 +70,7 @@ function cleanupTerrain() {
 
         terrain.length > 60 &&
 
-        terrain[1].x < currentVehicle.x - canvas.width
+        terrain[1].x < currentVehicle.body.x - canvas.width
 
     ) {
 

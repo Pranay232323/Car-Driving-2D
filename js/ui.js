@@ -25,7 +25,7 @@ function drawUI() {
 
     // Distance
     ctx.fillText(
-        "Distance: " + Math.floor(currentVehicle.x / 10) + " m",
+        "Distance: " + Math.floor(currentVehicle.body.x / 10) + " m",
         20,
         35
     );

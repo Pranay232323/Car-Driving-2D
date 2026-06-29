@@ -2,7 +2,7 @@ function updateGame() {
 
     currentVehicle.update();
 
-    updateCamera(currentVehicle.x);
+    updateCamera(currentVehicle.body.x);
 
     extendTerrain();
 

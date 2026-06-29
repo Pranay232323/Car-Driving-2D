@@ -4,85 +4,122 @@
 
 const currentVehicle = {
 
-    x: 250,
-    y: 300,
+    // Body
+    body: {
 
-    width: 120,
-    height: 40,
+        x: 250,
+        y: 250,
 
-    wheelRadius: 20,
+        width: 120,
+        height: 40,
 
+        angle: 0
+
+    },
+
+    // Engine
     speed: 0,
-    velocityY: 0,
-
-    gravity: 0.6,
-
-    wheelRotation: 0,
-
     acceleration: 0.25,
     maxSpeed: 8,
-    friction: 0.98
+    friction: 0.98,
+
+    // Physics
+    velocityY: 0,
+    gravity: 0.6,
+
+    // Wheels
+    frontWheel: {
+
+        offsetX: 95,
+        offsetY: 45,
+
+        radius: 20,
+        rotation: 0
+
+    },
+
+    rearWheel: {
+
+        offsetX: 25,
+        offsetY: 45,
+
+        radius: 20,
+        rotation: 0
+
+    }
 
 };
 
-// =========================
-// Update Vehicle
-// =========================
-
 currentVehicle.update = function () {
 
-    // Accelerate
     if (keys["ArrowRight"] || keys["d"]) {
 
         this.speed += this.acceleration;
 
     }
 
-    // Brake / Reverse
     if (keys["ArrowLeft"] || keys["a"]) {
 
         this.speed -= this.acceleration;
 
     }
 
-    // Clamp speed
+    this.speed *= this.friction;
+
     if (this.speed > this.maxSpeed)
         this.speed = this.maxSpeed;
 
     if (this.speed < -this.maxSpeed)
         this.speed = -this.maxSpeed;
 
-    // Friction
-    this.speed *= this.friction;
+    this.body.x += this.speed;
 
-    // Horizontal movement
-    this.x += this.speed;
-
-    // Gravity
-    this.velocityY += this.gravity;
-    this.y += this.velocityY;
-
-    // Ground collision
     const ground = getGroundHeight(
-        this.x + this.width / 2
+        this.body.x + this.body.width / 2
     );
 
-    if (this.y > ground - 62) {
+    this.body.y = ground - 65;
 
-        this.y = ground - 62;
-
-        this.velocityY = 0;
-
-    }
-
-    // Rotate wheels
-    this.wheelRotation += this.speed * 0.08;
+    this.frontWheel.rotation += this.speed * 0.08;
+    this.rearWheel.rotation += this.speed * 0.08;
 
 };
 
-// =========================
-// Draw Wheel
-// =========================
+currentVehicle.draw = function () {
+
+    const x = this.body.x - camera.x;
+
+    ctx.fillStyle = this.color;
+
+    ctx.fillRect(
+        x,
+        this.body.y,
+        this.body.width,
+        this.body.height
+    );
+
+    ctx.fillStyle = "#a00020";
+
+    ctx.fillRect(
+        x + 20,
+        this.body.y - 20,
+        45,
+        20
+    );
+
+    drawWheel(
+        x + this.rearWheel.offsetX,
+        this.body.y + this.rearWheel.offsetY,
+        this.rearWheel.rotation
+    );
+
+    drawWheel(
+        x + this.frontWheel.offsetX,
+        this.body.y + this.frontWheel.offsetY,
+        this.frontWheel.rotation
+    );
+
+};
 
 function drawWheel(x, y, rotation) {
 
@@ -92,22 +129,13 @@ function drawWheel(x, y, rotation) {
 
     ctx.rotate(rotation);
 
-    // Tire
     ctx.fillStyle = "#222";
 
     ctx.beginPath();
 
-    ctx.arc(
-        0,
-        0,
-        currentVehicle.wheelRadius,
-        0,
-        Math.PI * 2
-    );
+    ctx.arc(0, 0, 20, 0, Math.PI * 2);
 
     ctx.fill();
-
-    // Rim
 
     ctx.strokeStyle = "white";
 
@@ -115,58 +143,14 @@ function drawWheel(x, y, rotation) {
 
     ctx.beginPath();
 
-    ctx.moveTo(-12, 0);
-    ctx.lineTo(12, 0);
+    ctx.moveTo(-10, 0);
+    ctx.lineTo(10, 0);
 
-    ctx.moveTo(0, -12);
-    ctx.lineTo(0, 12);
+    ctx.moveTo(0, -10);
+    ctx.lineTo(0, 10);
 
     ctx.stroke();
 
     ctx.restore();
 
 }
-
-// =========================
-// Draw Vehicle
-// =========================
-
-currentVehicle.draw = function () {
-
-    const screenX = this.x - camera.x;
-
-    // Body
-    ctx.fillStyle = "#d62828";
-
-    ctx.fillRect(
-        screenX,
-        this.y,
-        this.width,
-        this.height
-    );
-
-    // Cabin
-    ctx.fillStyle = "#a00020";
-
-    ctx.fillRect(
-        screenX + 20,
-        this.y - 20,
-        45,
-        20
-    );
-
-    // Wheels
-
-    drawWheel(
-        screenX + 25,
-        this.y + 45,
-        this.wheelRotation
-    );
-
-    drawWheel(
-        screenX + 95,
-        this.y + 45,
-        this.wheelRotation
-    );
-
-};
