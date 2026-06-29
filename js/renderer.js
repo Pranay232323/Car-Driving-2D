@@ -1,8 +1,13 @@
-class Renderer{
+// =========================
+// Renderer
+// =========================
 
-    render(){
+class Renderer {
 
-        ctx.fillStyle="#87CEEB";
+    render() {
+
+        // Sky
+        ctx.fillStyle = "#87CEEB";
 
         ctx.fillRect(
             0,
@@ -11,12 +16,18 @@ class Renderer{
             canvas.height
         );
 
+        // Terrain
         drawTerrain();
 
+        // Vehicle
         currentVehicle.draw();
+
+        // UI
+        drawUI();
 
     }
 
 }
 
-const renderer=new Renderer();
+// Create renderer object
+const renderer = new Renderer();
