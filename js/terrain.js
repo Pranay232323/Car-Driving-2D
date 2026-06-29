@@ -27,6 +27,53 @@ function generateTerrain(){
     }
 
 }
+// =========================
+// Extend Terrain
+// =========================
+
+function extendTerrain() {
+
+    while (
+        terrain[terrain.length - 1].x <
+        currentVehicle.x + canvas.width * 2
+    ) {
+
+        const last = terrain[terrain.length - 1];
+
+        let y = last.y + (Math.random() - 0.5) * 40;
+
+        if (y < 320) y = 320;
+        if (y > 500) y = 500;
+
+        terrain.push({
+
+            x: last.x + SEGMENT,
+            y: y
+
+        });
+
+    }
+
+}
+// =========================
+// Remove Old Terrain
+// =========================
+
+function cleanupTerrain() {
+
+    while (
+
+        terrain.length > 60 &&
+
+        terrain[1].x < currentVehicle.x - canvas.width
+
+    ) {
+
+        terrain.shift();
+
+    }
+
+}
 
 function drawTerrain(){
 

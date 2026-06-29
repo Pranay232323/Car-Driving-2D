@@ -1,8 +1,12 @@
-function updateGame(){
+function updateGame() {
 
     currentVehicle.update();
 
     updateCamera(currentVehicle.x);
+
+    extendTerrain();
+
+    cleanupTerrain();
 
 }
 
