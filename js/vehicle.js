@@ -105,30 +105,47 @@ currentVehicle.draw = function () {
 
     const x = this.body.x - camera.x;
 
+    const centerX = x + this.body.width / 2;
+    const centerY = this.body.y + this.body.height / 2;
+
+    ctx.save();
+
+    // Move origin to body center
+    ctx.translate(centerX, centerY);
+
+    // Rotate body
+    ctx.rotate(this.body.angle);
+
+    // Draw Body
     ctx.fillStyle = this.color;
 
     ctx.fillRect(
-        x,
-        this.body.y,
+        -this.body.width / 2,
+        -this.body.height / 2,
         this.body.width,
         this.body.height
     );
 
-    ctx.fillStyle = "#a00020";
+    // Cabin
+    ctx.fillStyle = "#ff6708";
 
     ctx.fillRect(
-        x + 20,
-        this.body.y - 20,
+        -this.body.width / 2 + 20,
+        -this.body.height / 2 - 20,
         45,
         20
     );
 
+    ctx.restore();
+
+    // Rear Wheel
     drawWheel(
         x + this.rearWheel.offsetX,
         this.body.y + this.rearWheel.offsetY,
         this.rearWheel.rotation
     );
 
+    // Front Wheel
     drawWheel(
         x + this.frontWheel.offsetX,
         this.body.y + this.frontWheel.offsetY,
