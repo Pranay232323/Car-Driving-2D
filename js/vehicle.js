@@ -29,25 +29,39 @@ const currentVehicle = {
     onGround: false,
 
     // Wheels
-    frontWheel: {
+  frontWheel: {
 
-        offsetX: 95,
-        offsetY: 45,
+    x: 0,
+    y: 0,
 
-        radius: 20,
-        rotation: 0
+    velocityX: 0,
+    velocityY: 0,
 
-    },
+    radius: 20,
 
-    rearWheel: {
+    rotation: 0,
 
-        offsetX: 25,
-        offsetY: 45,
+    offsetX: 95,
+    offsetY: 45
 
-        radius: 20,
-        rotation: 0
+},
 
-    }
+  rearWheel: {
+
+    x: 0,
+    y: 0,
+
+    velocityX: 0,
+    velocityY: 0,
+
+    radius: 20,
+
+    rotation: 0,
+
+    offsetX: 25,
+    offsetY: 45
+
+},
 
 };
 
@@ -74,53 +88,84 @@ currentVehicle.update = function () {
         this.speed = -this.maxSpeed;
 
     this.body.x += this.speed;
+    // Update rear wheel position
+   // Rear wheel always follows body horizontally
+this.rearWheel.x = this.body.x + this.rearWheel.offsetX;
 
-    // Apply Gravity
-this.velocityY += this.gravity;
+// Apply gravity to rear wheel
+this.rearWheel.velocityY += this.gravity;
 
-// Move Vertically
-this.body.y += this.velocityY;
+// Move rear wheel vertically
+this.rearWheel.y += this.rearWheel.velocityY;
+// Rear wheel ground collision
+const rearWheelGround = getGroundHeight(this.rearWheel.x);
 
-// Ground Height
-const ground = getGroundHeight(
-    this.body.x + this.body.width / 2
-);
+const rearWheelGroundY =
+    rearWheelGround - this.rearWheel.radius;
 
-// Collision with Ground
-if (this.body.y >= ground - 65) {
+if (this.rearWheel.y > rearWheelGroundY) {
 
-    this.body.y = ground - 65;
+    this.rearWheel.y = rearWheelGroundY;
 
-    this.velocityY = 0;
-
-    this.onGround = true;
-
-} else {
-
-    this.onGround = false;
+    this.rearWheel.velocityY = 0;
 
 }
-    // Rear wheel ground
+    // Update front wheel position
+this.frontWheel.x = this.body.x + this.frontWheel.offsetX;
+this.frontWheel.y = this.body.y + this.frontWheel.offsetY;
+
+    // Apply Gravity
+    this.velocityY += this.gravity;
+
+    // Move Vertically
+  this.body.y =
+    this.rearWheel.y - this.rearWheel.offsetY;
+
+    // Rear Wheel Ground
     const rearGround = getGroundHeight(
         this.body.x + this.rearWheel.offsetX
     );
 
-    // Front wheel ground
+    // Front Wheel Ground
     const frontGround = getGroundHeight(
         this.body.x + this.frontWheel.offsetX
     );
 
-    // Calculate body angle
+    // Average Ground
+    const ground = (rearGround + frontGround) / 2;
+
+    // Apply Gravity
+    this.velocityY += this.gravity;
+
+    // Move Vehicle
+    this.body.y += this.velocityY;
+
+    // Ground Collision
+    if (this.body.y >= ground - 65) {
+
+        this.body.y = ground - 65;
+
+        this.velocityY = 0;
+
+        this.onGround = true;
+
+    } else {
+
+        this.onGround = false;
+
+    }
+
+    // Body Rotation
     this.body.angle = Math.atan2(
         frontGround - rearGround,
         this.frontWheel.offsetX - this.rearWheel.offsetX
     );
-    console.log(this.body.angle);
 
     this.frontWheel.rotation += this.speed * 0.08;
     this.rearWheel.rotation += this.speed * 0.08;
 
 };
+
 
 currentVehicle.draw = function () {
 
@@ -161,17 +206,17 @@ currentVehicle.draw = function () {
 
     // Rear Wheel
     drawWheel(
-        x + this.rearWheel.offsetX,
-        this.body.y + this.rearWheel.offsetY,
+        this.rearWheel.x - camera.x,
+        this.rearWheel.y,
         this.rearWheel.rotation
     );
 
     // Front Wheel
-    drawWheel(
-        x + this.frontWheel.offsetX,
-        this.body.y + this.frontWheel.offsetY,
-        this.frontWheel.rotation
-    );
+   drawWheel(
+    this.frontWheel.x - camera.x,
+    this.frontWheel.y,
+    this.frontWheel.rotation
+);
 
 };
 
