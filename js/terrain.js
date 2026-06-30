@@ -5,17 +5,17 @@ const BASE_HEIGHT = 420;
 
 generateTerrain();
 
-function generateTerrain(){
+function generateTerrain() {
 
     let x = 0;
     let y = BASE_HEIGHT;
 
-    for(let i=0;i<40;i++){
+    for (let i = 0; i < 40; i++) {
 
-        y += (Math.random()-0.5)*35;
+        y += (Math.random() - 0.5) * 35;
 
-        if(y<320) y=320;
-        if(y>500) y=500;
+        if (y < 320) y = 320;
+        if (y > 500) y = 500;
 
         terrain.push({
             x,
@@ -47,10 +47,10 @@ function extendTerrain() {
 
         const last = terrain[terrain.length - 1];
 
-        let y = last.y + (Math.random() - 0.5) * 40;
+       let y = last.y + (Math.random() - 0.5) * 90;
 
-        if (y < 320) y = 320;
-        if (y > 500) y = 500;
+       if (y < 250) y = 250;
+if (y > 550) y = 550;
 
         terrain.push({
             x: last.x + SEGMENT,
@@ -80,50 +80,50 @@ function cleanupTerrain() {
 
 }
 
-function drawTerrain(){
+function drawTerrain() {
 
     ctx.beginPath();
 
     ctx.moveTo(
-        terrain[0].x-camera.x,
+        terrain[0].x - camera.x,
         canvas.height
     );
 
-    terrain.forEach(point=>{
+    terrain.forEach(point => {
 
         ctx.lineTo(
-            point.x-camera.x,
+            point.x - camera.x,
             point.y
         );
 
     });
 
     ctx.lineTo(
-        terrain[terrain.length-1].x-camera.x,
+        terrain[terrain.length - 1].x - camera.x,
         canvas.height
     );
 
     ctx.closePath();
 
-    ctx.fillStyle="#8D6E63";
+    ctx.fillStyle = "#8D6E63";
 
     ctx.fill();
 
     ctx.beginPath();
 
-    terrain.forEach((point,index)=>{
+    terrain.forEach((point, index) => {
 
-        if(index===0){
+        if (index === 0) {
 
             ctx.moveTo(
-                point.x-camera.x,
+                point.x - camera.x,
                 point.y
             );
 
-        }else{
+        } else {
 
             ctx.lineTo(
-                point.x-camera.x,
+                point.x - camera.x,
                 point.y
             );
 
@@ -131,24 +131,24 @@ function drawTerrain(){
 
     });
 
-    ctx.strokeStyle="#4CAF50";
-    ctx.lineWidth=8;
+    ctx.strokeStyle = "#4CAF50";
+    ctx.lineWidth = 8;
     ctx.stroke();
 
 }
 
-function getGroundHeight(x){
+function getGroundHeight(x) {
 
-    for(let i=0;i<terrain.length-1;i++){
+    for (let i = 0; i < terrain.length - 1; i++) {
 
-        const a=terrain[i];
-        const b=terrain[i+1];
+        const a = terrain[i];
+        const b = terrain[i + 1];
 
-        if(x>=a.x && x<=b.x){
+        if (x >= a.x && x <= b.x) {
 
-            const t=(x-a.x)/(b.x-a.x);
+            const t = (x - a.x) / (b.x - a.x);
 
-            return a.y+(b.y-a.y)*t;
+            return a.y + (b.y - a.y) * t;
 
         }
 

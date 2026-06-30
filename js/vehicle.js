@@ -26,6 +26,7 @@ const currentVehicle = {
     // Physics
     velocityY: 0,
     gravity: 0.6,
+    onGround: false,
 
     // Wheels
     frontWheel: {
@@ -74,11 +75,31 @@ currentVehicle.update = function () {
 
     this.body.x += this.speed;
 
-    const ground = getGroundHeight(
-        this.body.x + this.body.width / 2
-    );
+    // Apply Gravity
+this.velocityY += this.gravity;
+
+// Move Vertically
+this.body.y += this.velocityY;
+
+// Ground Height
+const ground = getGroundHeight(
+    this.body.x + this.body.width / 2
+);
+
+// Collision with Ground
+if (this.body.y >= ground - 65) {
 
     this.body.y = ground - 65;
+
+    this.velocityY = 0;
+
+    this.onGround = true;
+
+} else {
+
+    this.onGround = false;
+
+}
     // Rear wheel ground
     const rearGround = getGroundHeight(
         this.body.x + this.rearWheel.offsetX
