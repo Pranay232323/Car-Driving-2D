@@ -110,17 +110,38 @@ if (this.rearWheel.y > rearWheelGroundY) {
     this.rearWheel.velocityY = 0;
 
 }
-    // Update front wheel position
-this.frontWheel.x = this.body.x + this.frontWheel.offsetX;
-this.frontWheel.y = this.body.y + this.frontWheel.offsetY;
+    // Front wheel follows body horizontally
+this.frontWheel.x =
+    this.body.x + this.frontWheel.offsetX;
+
+// Apply gravity
+this.frontWheel.velocityY += this.gravity;
+
+// Move front wheel
+this.frontWheel.y += this.frontWheel.velocityY;
+const frontWheelGround =
+    getGroundHeight(this.frontWheel.x);
+
+const frontWheelGroundY =
+    frontWheelGround - this.frontWheel.radius;
+
+if (this.frontWheel.y > frontWheelGroundY) {
+
+    this.frontWheel.y = frontWheelGroundY;
+
+    this.frontWheel.velocityY = 0;
+
+}
 
     // Apply Gravity
     this.velocityY += this.gravity;
 
-    // Move Vertically
-  this.body.y =
-    this.rearWheel.y - this.rearWheel.offsetY;
+    // Body follows both wheels
+const bodyCenterY =
+    (this.rearWheel.y + this.frontWheel.y) / 2;
 
+this.body.y =
+    bodyCenterY - this.rearWheel.offsetY;
     // Rear Wheel Ground
     const rearGround = getGroundHeight(
         this.body.x + this.rearWheel.offsetX
@@ -134,26 +155,9 @@ this.frontWheel.y = this.body.y + this.frontWheel.offsetY;
     // Average Ground
     const ground = (rearGround + frontGround) / 2;
 
-    // Apply Gravity
-    this.velocityY += this.gravity;
+    
 
-    // Move Vehicle
-    this.body.y += this.velocityY;
-
-    // Ground Collision
-    if (this.body.y >= ground - 65) {
-
-        this.body.y = ground - 65;
-
-        this.velocityY = 0;
-
-        this.onGround = true;
-
-    } else {
-
-        this.onGround = false;
-
-    }
+    
 
     // Body Rotation
     this.body.angle = Math.atan2(
