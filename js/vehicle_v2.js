@@ -16,19 +16,11 @@ class Vehicle {
         // Vehicle Body
         // -------------------------
 
-        this.body = {
-
-            x: 250,
-            y: 250,
-
-            width: config.width,
-            height: config.height,
-
-            angle: 0,
-
-            color: config.color
-
-        };
+       this.body = new Body(
+    250,
+    250,
+    config.body
+);
 
         // -------------------------
         // Engine Values
@@ -36,37 +28,79 @@ class Vehicle {
 
         this.speed = 0;
 
-        this.acceleration = config.acceleration;
-        this.maxSpeed = config.maxSpeed;
-        this.friction = config.friction;
-
+        this.acceleration = config.engine.acceleration;
+        this.maxSpeed = config.engine.maxSpeed;
+        this.friction = config.engine.friction;
         // -------------------------
         // Wheels
         // -------------------------
 
         this.rearWheel = new Wheel(
-            this.body.x + 25,
-            this.body.y + 45,
-            config.wheelRadius
+            this.body.x + config.wheels.rearOffsetX,
+            this.body.y + config.wheels.offsetY,
+            config.wheels.radius
         );
 
         this.frontWheel = new Wheel(
-            this.body.x + 95,
-            this.body.y + 45,
-            config.wheelRadius
+            this.body.x + config.wheels.frontOffsetX,
+            this.body.y + config.wheels.offsetY,
+            config.wheels.radius
         );
+        // Wheel attachment points relative to the body
+this.rearAnchor = {
+    x: config.wheels.rearOffsetX,
+    y: config.wheels.offsetY
+};
+
+this.frontAnchor = {
+    x: config.wheels.frontOffsetX,
+    y: config.wheels.offsetY
+};
 
     }
+    
 
     /**
      * Update vehicle.
      * Physics will be added later.
      */
-    update() {
+    update(physics) {
 
-        // Nothing yet
+        // Update both wheels using the physics world
+        this.rearWheel.update(physics);
+        this.frontWheel.update(physics);
+        //update body
+        this.body.update(physics);
+        // Calculate the constraint error 
+        this.calculateConstraints();
 
     }
+    /**
+ * Calculate the constraint error between
+ * the body anchor points and the wheels.
+ */
+calculateConstraints() {
+
+    // Desired rear wheel position
+    const rearTargetX = this.body.x + this.rearAnchor.x;
+    const rearTargetY = this.body.y + this.rearAnchor.y;
+
+    // Desired front wheel position
+    const frontTargetX = this.body.x + this.frontAnchor.x;
+    const frontTargetY = this.body.y + this.frontAnchor.y;
+
+    // Constraint error
+    this.rearConstraint = {
+        x: this.rearWheel.x - rearTargetX,
+        y: this.rearWheel.y - rearTargetY
+    };
+
+    this.frontConstraint = {
+        x: this.frontWheel.x - frontTargetX,
+        y: this.frontWheel.y - frontTargetY
+    };
+
+}
 
     /**
      * Draw vehicle.
@@ -113,8 +147,8 @@ class Vehicle {
         // Draw Rear Wheel
         // -------------------------
 
-       this.rearWheel.draw();
-this.frontWheel.draw();
+        this.rearWheel.draw();
+        this.frontWheel.draw();
 
     }
 

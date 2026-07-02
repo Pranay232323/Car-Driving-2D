@@ -3,20 +3,12 @@
  * Wheel Class
  * ----------------------------------------------------------
  * Represents a single physical wheel.
- * This class owns its own state and rendering.
- * Physics behaviour will be added in later steps.
+ * Handles its own state and basic physics.
  * ==========================================================
  */
 
 class Wheel {
 
-    /**
-     * Create a wheel.
-     *
-     * @param {number} x Initial X position
-     * @param {number} y Initial Y position
-     * @param {number} radius Wheel radius
-     */
     constructor(x, y, radius) {
 
         // Position
@@ -35,7 +27,39 @@ class Wheel {
     }
 
     /**
-     * Draw this wheel.
+     * Update wheel physics.
+     *
+     * @param {PhysicsWorld} physics
+     */
+   update(physics) {
+
+    // Apply gravity
+    this.vy += physics.gravity;
+
+    // Move
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // -------------------------
+    // Ground Collision
+    // -------------------------
+
+    const groundY = getGroundHeight(this.x) - this.radius;
+
+    if (this.y > groundY) {
+
+        // Place wheel on terrain
+        this.y = groundY;
+
+        // Stop falling
+        this.vy = 0;
+
+    }
+
+}
+
+    /**
+     * Draw wheel.
      */
     draw() {
 
