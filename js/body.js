@@ -24,6 +24,9 @@ class Body {
 
         this.vx = 0;
         this.vy = 0;
+        // Force accumulator
+        this.fx = 0;
+        this.fy = 0;
 
         // -------------------------
         // Rotation
@@ -46,13 +49,23 @@ class Body {
         this.color = config.color;
 
     }
+    /**
+ * Reset accumulated forces.
+ */
+    clearForces() {
+
+        this.fx = 0;
+        this.fy = 0;
+
+    }
 
     /**
      * Apply global forces.
      */
     applyForces(physics) {
 
-        this.vy += physics.gravity;
+        // Gravity contributes to the accumulated force
+        this.fy += physics.gravity;
 
     }
 
@@ -60,6 +73,9 @@ class Body {
      * Integrate velocity.
      */
     integrate() {
+        // Convert accumulated force into velocity
+        this.vx += this.fx;
+        this.vy += this.fy;
 
         this.x += this.vx;
         this.y += this.vy;
@@ -73,11 +89,14 @@ class Body {
      */
     update(physics) {
 
-        this.applyForces(physics);
+    this.clearForces();
 
-        this.integrate();
+    this.applyForces(physics);
 
-    }
+    // Don't integrate here.
+    // Vehicle decides when integration happens.
+
+}
 
     /**
      * Draw body.

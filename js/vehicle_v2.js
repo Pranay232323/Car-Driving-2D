@@ -16,11 +16,11 @@ class Vehicle {
         // Vehicle Body
         // -------------------------
 
-       this.body = new Body(
-    250,
-    250,
-    config.body
-);
+        this.body = new Body(
+            250,
+            250,
+            config.body
+        );
 
         // -------------------------
         // Engine Values
@@ -47,18 +47,32 @@ class Vehicle {
             config.wheels.radius
         );
         // Wheel attachment points relative to the body
-this.rearAnchor = {
-    x: config.wheels.rearOffsetX,
-    y: config.wheels.offsetY
-};
+        // Wheel attachment points
+        this.rearAnchor = {
+            x: config.wheels.rearOffsetX,
+            y: config.wheels.offsetY
+        };
 
-this.frontAnchor = {
-    x: config.wheels.frontOffsetX,
-    y: config.wheels.offsetY
-};
+        this.frontAnchor = {
+            x: config.wheels.frontOffsetX,
+            y: config.wheels.offsetY
+        };
+
+        // Suspension state
+        this.rearSuspension = new Suspension(
+            this.body,
+            this.rearWheel,
+            this.rearAnchor
+        );
+
+        this.frontSuspension = new Suspension(
+            this.body,
+            this.frontWheel,
+            this.frontAnchor
+        );
 
     }
-    
+
 
     /**
      * Update vehicle.
@@ -66,42 +80,50 @@ this.frontAnchor = {
      */
     update(physics) {
 
-        // Update both wheels using the physics world
+        // 1. Wheels
         this.rearWheel.update(physics);
         this.frontWheel.update(physics);
-        //update body
+
+        // 2. Measure suspension
+        // this.rearSuspension.measure();
+        // this.frontSuspension.measure();
+
+        // 3. Body collects forces
         this.body.update(physics);
-        // Calculate the constraint error 
-        this.calculateConstraints();
+
+        // 4. Suspension applies forces
+        // this.rearSuspension.applySpringForce();
+        //  this.frontSuspension.applySpringForce();
+
+        // 5. Body moves
+        this.body.integrate();
+        
 
     }
-    /**
- * Calculate the constraint error between
- * the body anchor points and the wheels.
- */
-calculateConstraints() {
+    updateChassis() {
 
-    // Desired rear wheel position
-    const rearTargetX = this.body.x + this.rearAnchor.x;
-    const rearTargetY = this.body.y + this.rearAnchor.y;
+        // Midpoint between wheels
+        const midX = (this.rearWheel.x + this.frontWheel.x) / 2;
+        const midY = (this.rearWheel.y + this.frontWheel.y) / 2;
 
-    // Desired front wheel position
-    const frontTargetX = this.body.x + this.frontAnchor.x;
-    const frontTargetY = this.body.y + this.frontAnchor.y;
+        // Position body
+        this.body.x = midX - this.body.width / 2;
 
-    // Constraint error
-    this.rearConstraint = {
-        x: this.rearWheel.x - rearTargetX,
-        y: this.rearWheel.y - rearTargetY
-    };
+        this.body.y = midY - this.rearAnchor.y;
 
-    this.frontConstraint = {
-        x: this.frontWheel.x - frontTargetX,
-        y: this.frontWheel.y - frontTargetY
-    };
+        // Rotate body
+        this.body.angle = Math.atan2(
 
-}
+            this.frontWheel.y - this.rearWheel.y,
 
+            this.frontWheel.x - this.rearWheel.x
+
+        );
+
+        this.updateChassis();
+        console.log("updateChassis running");
+
+    }
     /**
      * Draw vehicle.
      */
