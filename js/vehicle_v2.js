@@ -1,80 +1,123 @@
-// =========================
-// Vehicle V2
-// =========================
+/**
+ * ==========================================================
+ * Vehicle Class
+ * ----------------------------------------------------------
+ * First implementation of the new Physics V2 vehicle.
+ * This version only creates and draws the vehicle.
+ * No movement or physics yet.
+ * ==========================================================
+ */
 
 class Vehicle {
 
-    constructor(x, y) {
+    constructor(config) {
 
-        // Engine
-        this.engineForce = 0.25;
-        this.maxSpeed = 8;
-        this.friction = 0.98;
-        this.speed = 0;
+        // -------------------------
+        // Vehicle Body
+        // -------------------------
 
-        // Body
         this.body = {
 
-            x: x,
-            y: y,
+            x: 250,
+            y: 250,
 
-            width: 120,
-            height: 40,
+            width: config.width,
+            height: config.height,
 
             angle: 0,
 
-            color: "#d62828"
+            color: config.color
 
         };
 
-        // Rear Wheel
-        this.rearWheel = {
+        // -------------------------
+        // Engine Values
+        // -------------------------
 
-            x: x + 25,
-            y: y + 45,
+        this.speed = 0;
 
-            radius: 20,
+        this.acceleration = config.acceleration;
+        this.maxSpeed = config.maxSpeed;
+        this.friction = config.friction;
 
-            velocityX: 0,
-            velocityY: 0,
+        // -------------------------
+        // Wheels
+        // -------------------------
 
-            rotation: 0
+        this.rearWheel = new Wheel(
+            this.body.x + 25,
+            this.body.y + 45,
+            config.wheelRadius
+        );
 
-        };
-
-        // Front Wheel
-        this.frontWheel = {
-
-            x: x + 95,
-            y: y + 45,
-
-            radius: 20,
-
-            velocityX: 0,
-            velocityY: 0,
-
-            rotation: 0
-
-        };
-
-        // Physics
-        this.gravity = 0.6;
+        this.frontWheel = new Wheel(
+            this.body.x + 95,
+            this.body.y + 45,
+            config.wheelRadius
+        );
 
     }
 
+    /**
+     * Update vehicle.
+     * Physics will be added later.
+     */
     update() {
 
-        // We will build this in Part B
+        // Nothing yet
 
     }
 
+    /**
+     * Draw vehicle.
+     */
     draw() {
 
-        // We will build this in Part C
+        // -------------------------
+        // Draw Body
+        // -------------------------
+
+        const x = this.body.x - camera.x;
+
+        const centerX = x + this.body.width / 2;
+        const centerY = this.body.y + this.body.height / 2;
+
+        ctx.save();
+
+        ctx.translate(centerX, centerY);
+        ctx.rotate(this.body.angle);
+
+        // Body
+        ctx.fillStyle = this.body.color;
+
+        ctx.fillRect(
+            -this.body.width / 2,
+            -this.body.height / 2,
+            this.body.width,
+            this.body.height
+        );
+
+        // Cabin
+        ctx.fillStyle = "#ff6708";
+
+        ctx.fillRect(
+            -this.body.width / 2 + 20,
+            -this.body.height / 2 - 20,
+            45,
+            20
+        );
+
+        ctx.restore();
+
+        // -------------------------
+        // Draw Rear Wheel
+        // -------------------------
+
+       this.rearWheel.draw();
+this.frontWheel.draw();
 
     }
 
 }
 
-// Current Vehicle
-const currentVehicle = new Vehicle(250, 250);
+const currentVehicle = new Vehicle(VEHICLES.jeep);

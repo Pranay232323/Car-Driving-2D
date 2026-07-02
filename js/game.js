@@ -1,19 +1,34 @@
+/**
+ * ==========================================================
+ * Game Update
+ * ==========================================================
+ */
+
 function updateGame() {
 
-    currentVehicle.update();
+    // Update physics simulation
+    physicsWorld.update(currentVehicle);
 
+    // Update camera
     updateCamera(currentVehicle.body.x);
 
+    // Terrain management
     extendTerrain();
-
     cleanupTerrain();
 
 }
 
-function drawGame(){
+/**
+ * ==========================================================
+ * Game Render
+ * ==========================================================
+ */
+
+function drawGame() {
 
     renderer.render();
 
 }
 
+// Start the game loop
 gameLoop();
