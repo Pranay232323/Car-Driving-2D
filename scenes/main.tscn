@@ -1,6 +1,6 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene format=3 uid="uid://ddeamw7mwehrd"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://dfphiqo3s2jw7" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/vehicle/placeholder_vehicle.tscn" id="2_vehicle"]
 
 [sub_resource type="Environment" id="Environment_world"]
@@ -17,7 +17,6 @@ size = Vector3(80, 0.5, 40)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.32, 0.38, 0.31, 1)
-roughness = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_track"]
 size = Vector3(80, 0.5, 20)
@@ -27,7 +26,6 @@ size = Vector3(80, 0.5, 20)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_track"]
 albedo_color = Color(0.48, 0.4, 0.27, 1)
-roughness = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_deck"]
 size = Vector3(80, 0.5, 14)
@@ -47,85 +45,81 @@ size = Vector3(80, 0.5, 120)
 [sub_resource type="BoxMesh" id="BoxMesh_landing"]
 size = Vector3(80, 0.5, 120)
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1165259550]
 script = ExtResource("1_main")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1115828861]
 environment = SubResource("Environment_world")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-35, 25, 0)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=505342457]
+transform = Transform3D(0.90630776, -0.24240388, 0.34618863, 0, 0.81915206, 0.57357645, -0.42261827, -0.5198368, 0.74240386, 0, 0, 0)
 shadow_enabled = true
 
-[node name="TestFloor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.25, 10)
+[node name="TestFloor" type="StaticBody3D" parent="." unique_id=1866043148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 10)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TestFloor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestFloor" unique_id=2132701955]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TestFloor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TestFloor" unique_id=239409196]
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
-[node name="UphillIncline" type="StaticBody3D" parent="."]
-position = Vector3(0, 1.5, -20)
-rotation_degrees = Vector3(8.594, 0, 0)
+[node name="UphillIncline" type="StaticBody3D" parent="." unique_id=422901226]
+transform = Transform3D(1, 0, 0, 0, 0.98877203, -0.14943181, 0, 0.14943181, 0.98877203, 0, 1.5, -20)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="UphillIncline"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UphillIncline" unique_id=1763916754]
 shape = SubResource("BoxShape3D_track")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="UphillIncline"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="UphillIncline" unique_id=251095428]
 mesh = SubResource("BoxMesh_track")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
-[node name="UpperDeck" type="StaticBody3D" parent="."]
-position = Vector3(0, 3.0, -37)
+[node name="UpperDeck" type="StaticBody3D" parent="." unique_id=2135554230]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -37)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="UpperDeck"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UpperDeck" unique_id=1503630804]
 shape = SubResource("BoxShape3D_deck")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="UpperDeck"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="UpperDeck" unique_id=1918959222]
 mesh = SubResource("BoxMesh_deck")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
-[node name="SmallBump" type="StaticBody3D" parent="."]
-position = Vector3(0, 3.2, -45.5)
-rotation_degrees = Vector3(11.31, 0, 0)
+[node name="SmallBump" type="StaticBody3D" parent="." unique_id=1965313111]
+transform = Transform3D(1, 0, 0, 0, 0.98058045, -0.1961173, 0, 0.1961173, 0.98058045, 0, 3.2, -45.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SmallBump"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SmallBump" unique_id=1355495632]
 shape = SubResource("BoxShape3D_bump")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="SmallBump"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SmallBump" unique_id=1949751121]
 mesh = SubResource("BoxMesh_bump")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
-[node name="LaunchRamp" type="StaticBody3D" parent="."]
-position = Vector3(0, 3.6, -47.5)
-rotation_degrees = Vector3(11.31, 0, 0)
+[node name="LaunchRamp" type="StaticBody3D" parent="." unique_id=1044708608]
+transform = Transform3D(1, 0, 0, 0, 0.98058045, -0.1961173, 0, 0.1961173, 0.98058045, 0, 3.6, -47.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="LaunchRamp"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LaunchRamp" unique_id=1769497550]
 shape = SubResource("BoxShape3D_bump")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="LaunchRamp"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LaunchRamp" unique_id=1502708448]
 mesh = SubResource("BoxMesh_bump")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
-[node name="LandingDeck" type="StaticBody3D" parent="."]
-position = Vector3(0, 3.7, -110.5)
+[node name="LandingDeck" type="StaticBody3D" parent="." unique_id=1380096550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.7, -110.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="LandingDeck"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LandingDeck" unique_id=908439857]
 shape = SubResource("BoxShape3D_landing")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="LandingDeck"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LandingDeck" unique_id=160182769]
 mesh = SubResource("BoxMesh_landing")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
-[node name="PlaceholderVehicle" parent="." instance=ExtResource("2_vehicle")]
-position = Vector3(0, 1.2, 0)
+[node name="PlaceholderVehicle" parent="." unique_id=2082751511 instance=ExtResource("2_vehicle")]
+transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.99993354, 0, 1.2, 0.22146821)
 
-[node name="SideCamera" type="Camera3D" parent="."]
-position = Vector3(24, 4, 0)
-rotation_degrees = Vector3(-7.125, 90, 0)
+[node name="SideCamera" type="Camera3D" parent="." unique_id=562374222]
+transform = Transform3D(-4.371139e-08, -0.12403445, 0.9922779, 0, 0.9922779, 0.12403445, -1, 5.421718e-09, -4.3373845e-08, 24, 4, 0)
 projection = 1
-size = 12.0
 current = true
+size = 12.0

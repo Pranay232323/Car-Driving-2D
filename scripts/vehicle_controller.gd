@@ -21,6 +21,11 @@ const MAX_AIR_PITCH_ANGLE := 1.1
 
 var _starting_transform: Transform3D
 var _wheels: Array[Dictionary] = []
+var throttle_input := 0.0
+var brake_input := 0.0
+var pitch_input := 0.0
+var applied_engine_torque := 0.0
+var applied_drive_force := 0.0
 
 
 func _ready() -> void:
@@ -55,6 +60,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		state.sleeping = false
+		throttle_input = 0.0
+		brake_input = 0.0
+		pitch_input = 0.0
+		applied_engine_torque = 0.0
+		applied_drive_force = 0.0
 		for wheel: Dictionary in _wheels:
 			wheel["in_contact"] = false
 			wheel["compression"] = 0.0
@@ -68,7 +78,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var forward := -basis.z
 	var throttle := Input.get_axis("vehicle_reverse", "vehicle_accelerate")
 	var brake := Input.get_action_strength("vehicle_brake")
-	var pitch_input := Input.get_axis("vehicle_pitch_backward", "vehicle_pitch_forward")
+	pitch_input = Input.get_axis("vehicle_pitch_backward", "vehicle_pitch_forward")
+	throttle_input = throttle
+	brake_input = brake
+	applied_engine_torque = 0.0
+	applied_drive_force = 0.0
 	var grounded_wheels := 0
 	var space_state := get_world_3d().direct_space_state
 	var exclude := [get_rid()]
@@ -120,6 +134,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var drive_torque := ENGINE_TORQUE * throttle if wheel["driven"] else 0.0
 		var tire_force := 0.0
 		var braking_torque := brake * BRAKE_TORQUE
+		if wheel["driven"]:
+			applied_engine_torque = drive_torque
 
 		if in_contact:
 			var slip_speed := angular_speed * WHEEL_RADIUS - longitudinal_speed
@@ -128,6 +144,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			var brake_force := clampf(-longitudinal_speed * 1800.0, -braking_torque, braking_torque)
 			tire_force += clampf(brake_force, -traction_limit - tire_force, traction_limit - tire_force)
 			state.apply_force(tire_forward * tire_force, contact_point - state.transform.origin)
+			if wheel["driven"]:
+				applied_drive_force = tire_force
 			angular_speed += (drive_torque - tire_force * WHEEL_RADIUS - signf(angular_speed) * braking_torque) / WHEEL_INERTIA * delta
 		else:
 			angular_speed += (drive_torque - signf(angular_speed) * braking_torque) / WHEEL_INERTIA * delta
