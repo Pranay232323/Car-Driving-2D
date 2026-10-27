@@ -1,0 +1,95 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicle_controller.gd" id="1_controller"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chassis"]
+size = Vector3(1.7, 0.7, 3.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chassis"]
+size = Vector3(1.7, 0.65, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chassis"]
+albedo_color = Color(0.78, 0.24, 0.12, 1)
+roughness = 0.75
+
+[sub_resource type="BoxMesh" id="BoxMesh_cabin"]
+size = Vector3(1.35, 0.7, 1.65)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cabin"]
+albedo_color = Color(0.22, 0.42, 0.56, 1)
+metallic = 0.15
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wheel"]
+top_radius = 0.4
+bottom_radius = 0.4
+height = 0.28
+radial_segments = 20
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wheel"]
+albedo_color = Color(0.08, 0.09, 0.1, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_contact"]
+radius = 0.1
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_contact"]
+albedo_color = Color(0.18, 0.9, 0.3, 1)
+emission_enabled = true
+emission = Color(0.12, 0.8, 0.24, 1)
+
+[node name="PlaceholderVehicle" type="RigidBody3D"]
+script = ExtResource("1_controller")
+mass = 750.0
+linear_damp = 0.1
+angular_damp = 0.6
+axis_lock_linear_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+
+[node name="ChassisCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.15, 0)
+shape = SubResource("BoxShape3D_chassis")
+
+[node name="ChassisVisual" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+mesh = SubResource("BoxMesh_chassis")
+surface_material_override/0 = SubResource("StandardMaterial3D_chassis")
+
+[node name="CabinVisual" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.72, -0.15)
+mesh = SubResource("BoxMesh_cabin")
+surface_material_override/0 = SubResource("StandardMaterial3D_cabin")
+
+[node name="RearWheelNear" type="MeshInstance3D" parent="."]
+position = Vector3(0.88, -0.62, 1.05)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="RearWheelFar" type="MeshInstance3D" parent="."]
+position = Vector3(-0.88, -0.62, 1.05)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="FrontWheelNear" type="MeshInstance3D" parent="."]
+position = Vector3(0.88, -0.62, -1.05)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="FrontWheelFar" type="MeshInstance3D" parent="."]
+position = Vector3(-0.88, -0.62, -1.05)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("CylinderMesh_wheel")
+surface_material_override/0 = SubResource("StandardMaterial3D_wheel")
+
+[node name="RearContactDebug" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_contact")
+surface_material_override/0 = SubResource("StandardMaterial3D_contact")
+
+[node name="FrontContactDebug" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_contact")
+surface_material_override/0 = SubResource("StandardMaterial3D_contact")

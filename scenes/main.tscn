@@ -1,0 +1,131 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/vehicle/placeholder_vehicle.tscn" id="2_vehicle"]
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 1
+background_color = Color(0.52, 0.72, 0.88, 1)
+ambient_light_color = Color(0.72, 0.76, 0.82, 1)
+ambient_light_energy = 0.8
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(80, 0.5, 40)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(80, 0.5, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.32, 0.38, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_track"]
+size = Vector3(80, 0.5, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_track"]
+size = Vector3(80, 0.5, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_track"]
+albedo_color = Color(0.48, 0.4, 0.27, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_deck"]
+size = Vector3(80, 0.5, 14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_deck"]
+size = Vector3(80, 0.5, 14)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bump"]
+size = Vector3(80, 0.5, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bump"]
+size = Vector3(80, 0.5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_landing"]
+size = Vector3(80, 0.5, 120)
+
+[sub_resource type="BoxMesh" id="BoxMesh_landing"]
+size = Vector3(80, 0.5, 120)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-35, 25, 0)
+shadow_enabled = true
+
+[node name="TestFloor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.25, 10)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestFloor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TestFloor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="UphillIncline" type="StaticBody3D" parent="."]
+position = Vector3(0, 1.5, -20)
+rotation_degrees = Vector3(8.594, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UphillIncline"]
+shape = SubResource("BoxShape3D_track")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="UphillIncline"]
+mesh = SubResource("BoxMesh_track")
+surface_material_override/0 = SubResource("StandardMaterial3D_track")
+
+[node name="UpperDeck" type="StaticBody3D" parent="."]
+position = Vector3(0, 3.0, -37)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UpperDeck"]
+shape = SubResource("BoxShape3D_deck")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="UpperDeck"]
+mesh = SubResource("BoxMesh_deck")
+surface_material_override/0 = SubResource("StandardMaterial3D_track")
+
+[node name="SmallBump" type="StaticBody3D" parent="."]
+position = Vector3(0, 3.2, -45.5)
+rotation_degrees = Vector3(11.31, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SmallBump"]
+shape = SubResource("BoxShape3D_bump")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SmallBump"]
+mesh = SubResource("BoxMesh_bump")
+surface_material_override/0 = SubResource("StandardMaterial3D_track")
+
+[node name="LaunchRamp" type="StaticBody3D" parent="."]
+position = Vector3(0, 3.6, -47.5)
+rotation_degrees = Vector3(11.31, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LaunchRamp"]
+shape = SubResource("BoxShape3D_bump")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LaunchRamp"]
+mesh = SubResource("BoxMesh_bump")
+surface_material_override/0 = SubResource("StandardMaterial3D_track")
+
+[node name="LandingDeck" type="StaticBody3D" parent="."]
+position = Vector3(0, 3.7, -110.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LandingDeck"]
+shape = SubResource("BoxShape3D_landing")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LandingDeck"]
+mesh = SubResource("BoxMesh_landing")
+surface_material_override/0 = SubResource("StandardMaterial3D_track")
+
+[node name="PlaceholderVehicle" parent="." instance=ExtResource("2_vehicle")]
+position = Vector3(0, 1.2, 0)
+
+[node name="SideCamera" type="Camera3D" parent="."]
+position = Vector3(24, 4, 0)
+rotation_degrees = Vector3(-7.125, 90, 0)
+projection = 1
+size = 12.0
+current = true
