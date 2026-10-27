@@ -79,6 +79,27 @@ class Vehicle {
      * Physics will be added later.
      */
     update(physics) {
+        // Engine
+        if (keys["ArrowRight"] || keys["d"]) {
+
+            this.rearWheel.velocityX += this.acceleration;
+
+        }
+
+        if (keys["ArrowLeft"] || keys["a"]) {
+
+            this.rearWheel.velocityX -= this.acceleration;
+
+        }
+
+        // Friction
+        this.rearWheel.velocityX *= this.friction;
+
+        // Speed limit
+        this.rearWheel.velocityX = Math.max(
+            -this.maxSpeed,
+            Math.min(this.maxSpeed, this.rearWheel.velocityX)
+        );
 
         // 1. Wheels
         this.rearWheel.update(physics);
@@ -97,7 +118,7 @@ class Vehicle {
 
         // 5. Body moves
         this.body.integrate();
-        
+        this.updateChassis();
 
     }
     updateChassis() {
@@ -120,8 +141,7 @@ class Vehicle {
 
         );
 
-        this.updateChassis();
-        console.log("updateChassis running");
+
 
     }
     /**

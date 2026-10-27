@@ -31,32 +31,34 @@ class Wheel {
      *
      * @param {PhysicsWorld} physics
      */
-   update(physics) {
+    update(physics) {
+        // Horizontal movement
+        this.x += this.velocityX;
 
-    // Apply gravity
-    this.vy += physics.gravity;
+        // Apply gravity
+        this.vy += physics.gravity;
 
-    // Move
-    this.x += this.vx;
-    this.y += this.vy;
+        // Move
+        this.x += this.vx;
+        this.y += this.vy;
 
-    // -------------------------
-    // Ground Collision
-    // -------------------------
+        // -------------------------
+        // Ground Collision
+        // -------------------------
 
-    const groundY = getGroundHeight(this.x) - this.radius;
+        const groundY = getGroundHeight(this.x) - this.radius;
 
-    if (this.y > groundY) {
+        if (this.y > groundY) {
 
-        // Place wheel on terrain
-        this.y = groundY;
+            // Place wheel on terrain
+            this.y = groundY;
 
-        // Stop falling
-        this.vy = 0;
+            // Stop falling
+            this.vy = 0;
+
+        }
 
     }
-
-}
 
     /**
      * Draw wheel.

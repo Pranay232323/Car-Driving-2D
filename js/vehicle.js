@@ -29,39 +29,39 @@ const currentVehicle = {
     onGround: false,
 
     // Wheels
-  frontWheel: {
+    frontWheel: {
 
-    x: 0,
-    y: 0,
+        x: 0,
+        y: 0,
 
-    velocityX: 0,
-    velocityY: 0,
+        velocityX: 0,
+        velocityY: 0,
 
-    radius: 20,
+        radius: 20,
 
-    rotation: 0,
+        rotation: 0,
 
-    offsetX: 95,
-    offsetY: 45
+        offsetX: 95,
+        offsetY: 45
 
-},
+    },
 
-  rearWheel: {
+    rearWheel: {
 
-    x: 0,
-    y: 0,
+        x: 0,
+        y: 0,
 
-    velocityX: 0,
-    velocityY: 0,
+        velocityX: 0,
+        velocityY: 0,
 
-    radius: 20,
+        radius: 20,
 
-    rotation: 0,
+        rotation: 0,
 
-    offsetX: 25,
-    offsetY: 45
+        offsetX: 25,
+        offsetY: 45
 
-},
+    },
 
 };
 
@@ -89,59 +89,59 @@ currentVehicle.update = function () {
 
     this.body.x += this.speed;
     // Update rear wheel position
-   // Rear wheel always follows body horizontally
-this.rearWheel.x = this.body.x + this.rearWheel.offsetX;
+    // Rear wheel always follows body horizontally
+    this.rearWheel.x = this.body.x + this.rearWheel.offsetX;
 
-// Apply gravity to rear wheel
-this.rearWheel.velocityY += this.gravity;
+    // Apply gravity to rear wheel
+    this.rearWheel.velocityY += this.gravity;
 
-// Move rear wheel vertically
-this.rearWheel.y += this.rearWheel.velocityY;
-// Rear wheel ground collision
-const rearWheelGround = getGroundHeight(this.rearWheel.x);
+    // Move rear wheel vertically
+    this.rearWheel.y += this.rearWheel.velocityY;
+    // Rear wheel ground collision
+    const rearWheelGround = getGroundHeight(this.rearWheel.x);
 
-const rearWheelGroundY =
-    rearWheelGround - this.rearWheel.radius;
+    const rearWheelGroundY =
+        rearWheelGround - this.rearWheel.radius;
 
-if (this.rearWheel.y > rearWheelGroundY) {
+    if (this.rearWheel.y > rearWheelGroundY) {
 
-    this.rearWheel.y = rearWheelGroundY;
+        this.rearWheel.y = rearWheelGroundY;
 
-    this.rearWheel.velocityY = 0;
+        this.rearWheel.velocityY = 0;
 
-}
+    }
     // Front wheel follows body horizontally
-this.frontWheel.x =
-    this.body.x + this.frontWheel.offsetX;
+    this.frontWheel.x =
+        this.body.x + this.frontWheel.offsetX;
 
-// Apply gravity
-this.frontWheel.velocityY += this.gravity;
+    // Apply gravity
+    this.frontWheel.velocityY += this.gravity;
 
-// Move front wheel
-this.frontWheel.y += this.frontWheel.velocityY;
-const frontWheelGround =
-    getGroundHeight(this.frontWheel.x);
+    // Move front wheel
+    this.frontWheel.y += this.frontWheel.velocityY;
+    const frontWheelGround =
+        getGroundHeight(this.frontWheel.x);
 
-const frontWheelGroundY =
-    frontWheelGround - this.frontWheel.radius;
+    const frontWheelGroundY =
+        frontWheelGround - this.frontWheel.radius;
 
-if (this.frontWheel.y > frontWheelGroundY) {
+    if (this.frontWheel.y > frontWheelGroundY) {
 
-    this.frontWheel.y = frontWheelGroundY;
+        this.frontWheel.y = frontWheelGroundY;
 
-    this.frontWheel.velocityY = 0;
+        this.frontWheel.velocityY = 0;
 
-}
+    }
 
     // Apply Gravity
     this.velocityY += this.gravity;
 
     // Body follows both wheels
-const bodyCenterY =
-    (this.rearWheel.y + this.frontWheel.y) / 2;
+    const bodyCenterY =
+        (this.rearWheel.y + this.frontWheel.y) / 2;
 
-this.body.y =
-    bodyCenterY - this.rearWheel.offsetY;
+    this.body.y =
+        bodyCenterY - this.rearWheel.offsetY;
     // Rear Wheel Ground
     const rearGround = getGroundHeight(
         this.body.x + this.rearWheel.offsetX
@@ -155,9 +155,9 @@ this.body.y =
     // Average Ground
     const ground = (rearGround + frontGround) / 2;
 
-    
 
-    
+
+
 
     // Body Rotation
     this.body.angle = Math.atan2(
@@ -216,11 +216,11 @@ currentVehicle.draw = function () {
     );
 
     // Front Wheel
-   drawWheel(
-    this.frontWheel.x - camera.x,
-    this.frontWheel.y,
-    this.frontWheel.rotation
-);
+    drawWheel(
+        this.frontWheel.x - camera.x,
+        this.frontWheel.y,
+        this.frontWheel.rotation
+    );
 
 };
 

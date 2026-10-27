@@ -47,10 +47,10 @@ function extendTerrain() {
 
         const last = terrain[terrain.length - 1];
 
-       let y = last.y + (Math.random() - 0.5) * 90;
+        let y = last.y + (Math.random() - 0.5) * 90;
 
-       if (y < 250) y = 250;
-if (y > 550) y = 550;
+        if (y < 250) y = 250;
+        if (y > 550) y = 550;
 
         terrain.push({
             x: last.x + SEGMENT,
