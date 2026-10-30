@@ -9,9 +9,13 @@ const TIRE_SLIP_STIFFNESS := 1800.0
 const WHEEL_INERTIA := 2.5
 const ENGINE_TORQUE := 1200.0
 const BRAKE_TORQUE := 3200.0
-const AIR_PITCH_TORQUE := 800.0
-const MAX_AIR_PITCH_SPEED := 1.2
-const MAX_AIR_PITCH_ANGLE := 1.1
+const AIR_PITCH_TORQUE := 1500.0
+const MAX_AIR_PITCH_SPEED := 5.2
+const MAX_AIR_PITCH_ANGLE := 12.0
+const NITRO_FORCE := 2400.0
+const NITRO_CAPACITY := 100.0
+const NITRO_DRAIN_RATE := 30.0
+const NITRO_RECHARGE_RATE := 5.0
 
 @export var wheel_track := 0.88
 @export var axle_spacing := 1.05
@@ -32,6 +36,34 @@ var brake_input := 0.0
 var pitch_input := 0.0
 var applied_engine_torque := 0.0
 var applied_drive_force := 0.0
+var _reset_requested := false
+var air_time := 0.0
+var air_rotation := 0.0
+var completed_flips := 0
+var nitro_amount := NITRO_CAPACITY
+var nitro_active := false
+var engine_rpm := 900.0
+var fuel_depleted := false
+var touch_accelerate := 0.0
+var touch_brake := 0.0
+var _was_airborne := false
+var _stunt_air_time := 0.0
+var _stunt_rotation := 0.0
+
+signal stunt_completed(flips: int, airtime: float)
+
+
+func request_reset() -> void:
+	_reset_requested = true
+
+
+func set_fuel_depleted(depleted: bool) -> void:
+	fuel_depleted = depleted
+
+
+func set_touch_controls(accelerate: float, brake: float) -> void:
+	touch_accelerate = clampf(accelerate, 0.0, 1.0)
+	touch_brake = clampf(brake, 0.0, 1.0)
 
 
 func _ready() -> void:
@@ -99,7 +131,8 @@ func _make_wheel(
 
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
-	if Input.is_action_just_pressed("vehicle_reset"):
+	if Input.is_action_just_pressed("vehicle_reset") or _reset_requested:
+		_reset_requested = false
 		state.transform = _starting_transform
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
@@ -109,6 +142,14 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		pitch_input = 0.0
 		applied_engine_torque = 0.0
 		applied_drive_force = 0.0
+		nitro_active = false
+		engine_rpm = 900.0
+		fuel_depleted = false
+		air_time = 0.0
+		air_rotation = 0.0
+		_was_airborne = false
+		_stunt_air_time = 0.0
+		_stunt_rotation = 0.0
 		for wheel: Dictionary in _wheels:
 			wheel["in_contact"] = false
 			wheel["compression"] = 0.0
@@ -125,13 +166,23 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var basis := state.transform.basis.orthonormalized()
 	var forward := -basis.z
 	var suspension_down := -basis.y
-	var throttle := Input.get_axis("vehicle_reverse", "vehicle_accelerate")
-	var brake := Input.get_action_strength("vehicle_brake")
+	var throttle := maxf(Input.get_action_strength("vehicle_accelerate"), touch_accelerate)
+	throttle -= Input.get_action_strength("vehicle_reverse")
+	if fuel_depleted:
+		throttle = 0.0
+	var brake := maxf(Input.get_action_strength("vehicle_brake"), touch_brake)
 	pitch_input = Input.get_axis("vehicle_pitch_backward", "vehicle_pitch_forward")
+	nitro_active = Input.is_action_pressed("vehicle_nitro") and throttle > 0.05 and nitro_amount > 0.0
+	if nitro_active:
+		nitro_amount = maxf(nitro_amount - NITRO_DRAIN_RATE * delta, 0.0)
+	else:
+		nitro_amount = minf(nitro_amount + NITRO_RECHARGE_RATE * delta, NITRO_CAPACITY)
 	throttle_input = throttle
 	brake_input = brake
 	applied_engine_torque = 0.0
 	applied_drive_force = 0.0
+	if nitro_active:
+		state.apply_force(forward * NITRO_FORCE)
 	var grounded_wheels := 0
 	var space_state := get_world_3d().direct_space_state
 
@@ -219,15 +270,37 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		wheel["angular_speed"] = angular_speed
 		wheel["spin"] = float(wheel["spin"]) + angular_speed * delta
 
+	var driven_wheel_speed := absf(float(_wheels[0]["angular_speed"]))
+	var target_rpm := clampf(900.0 + driven_wheel_speed * 60.0 / TAU * 4.2 + absf(throttle) * 950.0, 900.0, 8000.0)
+	engine_rpm = lerpf(engine_rpm, target_rpm, 1.0 - exp(-10.0 * delta))
+
 	if grounded_wheels == 0:
+		air_time += delta
+		_stunt_air_time += delta
+		_stunt_rotation += state.angular_velocity.x * delta
+		air_rotation = _stunt_rotation
+		_was_airborne = true
 		var pitch_speed := state.angular_velocity.x
 		var pitch_angle := wrapf(state.transform.basis.get_euler().x, -PI, PI)
 		var can_rotate_forward := pitch_input <= 0.0 or pitch_angle < MAX_AIR_PITCH_ANGLE
 		var can_rotate_backward := pitch_input >= 0.0 or pitch_angle > -MAX_AIR_PITCH_ANGLE
 		if (absf(pitch_speed) < MAX_AIR_PITCH_SPEED or signf(pitch_input) != signf(pitch_speed)) and can_rotate_forward and can_rotate_backward:
-			state.apply_torque(Vector3.RIGHT * pitch_input * AIR_PITCH_TORQUE)
+			var air_control := pitch_input
+			if is_zero_approx(air_control):
+				air_control = -signf(state.angular_velocity.x) * 0.08
+			state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE)
 	elif grounded_wheels == 1:
 		state.apply_torque(Vector3.RIGHT * pitch_input * AIR_PITCH_TORQUE * 0.12)
+	if grounded_wheels > 0 and _was_airborne:
+		var flips := int(floor(absf(_stunt_rotation) / TAU))
+		if flips > 0:
+			completed_flips += flips
+			stunt_completed.emit(flips, _stunt_air_time)
+		air_time = 0.0
+		air_rotation = 0.0
+		_stunt_air_time = 0.0
+		_stunt_rotation = 0.0
+		_was_airborne = false
 	if grounded_wheels < 2:
 		var angular_velocity := state.angular_velocity
 		angular_velocity.x = clampf(angular_velocity.x, -MAX_AIR_PITCH_SPEED, MAX_AIR_PITCH_SPEED)

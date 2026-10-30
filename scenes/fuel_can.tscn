@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/fuel_can.gd" id="1_fuel"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_can"]
+size = Vector3(0.52, 0.68, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_can"]
+albedo_color = Color(0.78, 0.06, 0.035, 1)
+metallic = 0.25
+roughness = 0.42
+
+[sub_resource type="BoxMesh" id="BoxMesh_symbol"]
+size = Vector3(0.3, 0.23, 0.025)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_symbol"]
+albedo_color = Color(1, 0.88, 0.58, 1)
+emission_enabled = true
+emission = Color(0.22, 0.11, 0.02, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_fuel"]
+radius = 1.05
+
+[node name="FuelCan" type="Area3D"]
+script = ExtResource("1_fuel")
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="FuelVisual" type="Node3D" parent="."]
+
+[node name="Can" type="MeshInstance3D" parent="FuelVisual"]
+mesh = SubResource("BoxMesh_can")
+material_override = SubResource("StandardMaterial3D_can")
+
+[node name="FuelSymbol" type="MeshInstance3D" parent="FuelVisual"]
+position = Vector3(0, 0.04, -0.125)
+mesh = SubResource("BoxMesh_symbol")
+material_override = SubResource("StandardMaterial3D_symbol")
+
+[node name="Cap" type="MeshInstance3D" parent="FuelVisual"]
+position = Vector3(0, 0.39, 0)
+scale = Vector3(0.65, 0.3, 0.8)
+mesh = SubResource("BoxMesh_can")
+material_override = SubResource("StandardMaterial3D_symbol")
+
+[node name="CollectionShape" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_fuel")

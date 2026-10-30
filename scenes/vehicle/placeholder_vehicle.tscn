@@ -1,6 +1,7 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/vehicle_controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://scripts/vehicle_visuals.gd" id="2_visuals"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_chassis"]
 size = Vector3(1.7, 0.7, 3.2)
@@ -86,6 +87,9 @@ angular_damp = 0.6
 axis_lock_linear_x = true
 axis_lock_angular_y = true
 axis_lock_angular_z = true
+
+[node name="VehicleVisuals" type="Node3D" parent="."]
+script = ExtResource("2_visuals")
 
 [node name="ChassisCollision" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.15, 0)

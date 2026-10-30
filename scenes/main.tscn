@@ -1,24 +1,44 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/vehicle/placeholder_vehicle.tscn" id="2_vehicle"]
 [ext_resource type="Script" path="res://scripts/procedural_terrain.gd" id="3_terrain"]
+[ext_resource type="Script" path="res://scripts/environment_visuals.gd" id="4_environment"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.08, 0.36, 0.78, 1)
+sky_horizon_color = Color(0.48, 0.78, 0.95, 1)
+ground_bottom_color = Color(0.30, 0.48, 0.33, 1)
+ground_horizon_color = Color(0.72, 0.82, 0.70, 1)
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
 
 [sub_resource type="Environment" id="Environment_world"]
-background_mode = 1
-background_color = Color(0.52, 0.72, 0.88, 1)
-ambient_light_color = Color(0.72, 0.76, 0.82, 1)
-ambient_light_energy = 0.8
+background_mode = 2
+sky = SubResource("Sky_world")
+ambient_light_source = 3
+ambient_light_color = Color(0.72, 0.84, 0.92, 1)
+ambient_light_energy = 1.15
+reflected_light_source = 2
+ssao_enabled = true
+ssao_radius = 2.0
+ssao_intensity = 1.4
+tonemap_mode = 2
+tonemap_exposure = 1.15
+fog_enabled = true
+fog_light_color = Color(0.72, 0.84, 0.88, 1)
+fog_light_energy = 0.32
+fog_density = 0.004
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
 size = Vector2(90, 45)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_background"]
-albedo_color = Color(0.18, 0.32, 0.27, 1)
-roughness = 1.0
-
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
+show_debug_overlay = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
@@ -26,15 +46,14 @@ environment = SubResource("Environment_world")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-35, -25, 0)
 shadow_enabled = true
-
-[node name="BackgroundMountain" type="MeshInstance3D" parent="."]
-position = Vector3(0, 5, -28)
-rotation_degrees = Vector3(90, 0, 0)
-mesh = SubResource("PlaneMesh_background")
-material_override = SubResource("StandardMaterial3D_background")
+light_color = Color(1, 0.94, 0.78, 1)
+light_energy = 1.25
 
 [node name="ProceduralTerrain" type="Node3D" parent="."]
 script = ExtResource("3_terrain")
+
+[node name="EnvironmentVisuals" type="Node3D" parent="."]
+script = ExtResource("4_environment")
 
 [node name="PlaceholderVehicle" parent="." instance=ExtResource("2_vehicle")]
 transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.99993354, 0, 1.02, 0.22146821)
@@ -43,4 +62,4 @@ transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.
 transform = Transform3D(-4.371139e-08, -0.12403445, 0.9922779, 0, 0.9922779, 0.12403445, -1, 5.421718e-09, -4.3373845e-08, 24, 4, 0)
 projection = 1
 current = true
-size = 12.0
+size = 10.0
