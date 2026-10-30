@@ -25,7 +25,7 @@ func _ready() -> void:
 	_debug_label.visible = show_debug_overlay
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var target := vehicle.global_position + Vector3(24.0, 2.8, 0.0)
 	var weight := 1.0 - exp(-camera_follow_speed * delta)
 	side_camera.global_position = side_camera.global_position.lerp(target, weight)

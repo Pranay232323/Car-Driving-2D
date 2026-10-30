@@ -10,40 +10,59 @@ ambient_light_color = Color(0.72, 0.76, 0.82, 1)
 ambient_light_energy = 0.8
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(80, 0.5, 40)
+size = Vector3(8, 0.5, 62)
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
-size = Vector3(80, 0.5, 40)
+size = Vector3(8, 0.5, 62)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.32, 0.38, 0.31, 1)
+roughness = 0.92
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_track"]
-size = Vector3(80, 0.5, 20)
+size = Vector3(8, 0.5, 20)
 
 [sub_resource type="BoxMesh" id="BoxMesh_track"]
-size = Vector3(80, 0.5, 20)
+size = Vector3(8, 0.5, 20)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_track"]
-albedo_color = Color(0.48, 0.4, 0.27, 1)
+albedo_color = Color(0.38, 0.29, 0.19, 1)
+roughness = 0.95
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_deck"]
-size = Vector3(80, 0.5, 14)
+size = Vector3(8, 0.5, 18)
 
 [sub_resource type="BoxMesh" id="BoxMesh_deck"]
-size = Vector3(80, 0.5, 14)
+size = Vector3(8, 0.5, 18)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bump"]
-size = Vector3(80, 0.5, 2)
+size = Vector3(8, 0.06, 2.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_bump"]
-size = Vector3(80, 0.5, 2)
+size = Vector3(8, 0.06, 2.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_launch"]
+size = Vector3(8, 0.5, 8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_launch"]
+size = Vector3(8, 0.5, 8)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_landing"]
-size = Vector3(80, 0.5, 120)
+size = Vector3(8, 0.5, 56)
 
 [sub_resource type="BoxMesh" id="BoxMesh_landing"]
-size = Vector3(80, 0.5, 120)
+size = Vector3(8, 0.5, 56)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_landing"]
+albedo_color = Color(0.3, 0.39, 0.31, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_edge_line"]
+size = Vector3(0.12, 0.035, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_edge_line"]
+albedo_color = Color(0.86, 0.68, 0.31, 1)
+roughness = 0.72
 
 [node name="Main" type="Node3D" unique_id=1165259550]
 script = ExtResource("1_main")
@@ -56,7 +75,7 @@ transform = Transform3D(0.90630776, -0.24240388, 0.34618863, 0, 0.81915206, 0.57
 shadow_enabled = true
 
 [node name="TestFloor" type="StaticBody3D" parent="." unique_id=1866043148]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 10)
+position = Vector3(0, -0.25, 9)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TestFloor" unique_id=2132701955]
 shape = SubResource("BoxShape3D_floor")
@@ -65,8 +84,21 @@ shape = SubResource("BoxShape3D_floor")
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
+[node name="LeftEdgeLine" type="MeshInstance3D" parent="TestFloor"]
+position = Vector3(-3.78, 0.27, 0)
+scale = Vector3(1, 1, 62)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
+[node name="RightEdgeLine" type="MeshInstance3D" parent="TestFloor"]
+position = Vector3(3.78, 0.27, 0)
+scale = Vector3(1, 1, 62)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
 [node name="UphillIncline" type="StaticBody3D" parent="." unique_id=422901226]
-transform = Transform3D(1, 0, 0, 0, 0.98877203, -0.14943181, 0, 0.14943181, 0.98877203, 0, 1.5, -20)
+position = Vector3(0, 0.448, -32)
+rotation_degrees = Vector3(4, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="UphillIncline" unique_id=1763916754]
 shape = SubResource("BoxShape3D_track")
@@ -75,8 +107,20 @@ shape = SubResource("BoxShape3D_track")
 mesh = SubResource("BoxMesh_track")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
+[node name="LeftEdgeLine" type="MeshInstance3D" parent="UphillIncline"]
+position = Vector3(-3.78, 0.27, 0)
+scale = Vector3(1, 1, 20)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
+[node name="RightEdgeLine" type="MeshInstance3D" parent="UphillIncline"]
+position = Vector3(3.78, 0.27, 0)
+scale = Vector3(1, 1, 20)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
 [node name="UpperDeck" type="StaticBody3D" parent="." unique_id=2135554230]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -37)
+position = Vector3(0, 1.146, -51)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="UpperDeck" unique_id=1503630804]
 shape = SubResource("BoxShape3D_deck")
@@ -85,8 +129,21 @@ shape = SubResource("BoxShape3D_deck")
 mesh = SubResource("BoxMesh_deck")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
+[node name="LeftEdgeLine" type="MeshInstance3D" parent="UpperDeck"]
+position = Vector3(-3.78, 0.27, 0)
+scale = Vector3(1, 1, 18)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
+[node name="RightEdgeLine" type="MeshInstance3D" parent="UpperDeck"]
+position = Vector3(3.78, 0.27, 0)
+scale = Vector3(1, 1, 18)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
 [node name="SmallBump" type="StaticBody3D" parent="." unique_id=1965313111]
-transform = Transform3D(1, 0, 0, 0, 0.98058045, -0.1961173, 0, 0.1961173, 0.98058045, 0, 3.2, -45.5)
+position = Vector3(0, 1.426, -47)
+rotation_degrees = Vector3(-2, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SmallBump" unique_id=1355495632]
 shape = SubResource("BoxShape3D_bump")
@@ -96,27 +153,52 @@ mesh = SubResource("BoxMesh_bump")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
 [node name="LaunchRamp" type="StaticBody3D" parent="." unique_id=1044708608]
-transform = Transform3D(1, 0, 0, 0, 0.98058045, -0.1961173, 0, 0.1961173, 0.98058045, 0, 3.6, -47.5)
+position = Vector3(0, 1.841, -64)
+rotation_degrees = Vector3(10, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="LaunchRamp" unique_id=1769497550]
-shape = SubResource("BoxShape3D_bump")
+shape = SubResource("BoxShape3D_launch")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="LaunchRamp" unique_id=1502708448]
-mesh = SubResource("BoxMesh_bump")
+mesh = SubResource("BoxMesh_launch")
 surface_material_override/0 = SubResource("StandardMaterial3D_track")
 
+[node name="LeftEdgeLine" type="MeshInstance3D" parent="LaunchRamp"]
+position = Vector3(-3.78, 0.27, 0)
+scale = Vector3(1, 1, 8)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
+[node name="RightEdgeLine" type="MeshInstance3D" parent="LaunchRamp"]
+position = Vector3(3.78, 0.27, 0)
+scale = Vector3(1, 1, 8)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
 [node name="LandingDeck" type="StaticBody3D" parent="." unique_id=1380096550]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.7, -110.5)
+position = Vector3(0, 1.15, -97)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="LandingDeck" unique_id=908439857]
 shape = SubResource("BoxShape3D_landing")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="LandingDeck" unique_id=160182769]
 mesh = SubResource("BoxMesh_landing")
-surface_material_override/0 = SubResource("StandardMaterial3D_track")
+surface_material_override/0 = SubResource("StandardMaterial3D_landing")
+
+[node name="LeftEdgeLine" type="MeshInstance3D" parent="LandingDeck"]
+position = Vector3(-3.78, 0.27, 0)
+scale = Vector3(1, 1, 56)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
+
+[node name="RightEdgeLine" type="MeshInstance3D" parent="LandingDeck"]
+position = Vector3(3.78, 0.27, 0)
+scale = Vector3(1, 1, 56)
+mesh = SubResource("BoxMesh_edge_line")
+surface_material_override/0 = SubResource("StandardMaterial3D_edge_line")
 
 [node name="PlaceholderVehicle" parent="." unique_id=2082751511 instance=ExtResource("2_vehicle")]
-transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.99993354, 0, 1.2, 0.22146821)
+transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.99993354, 0, 1.02, 0.22146821)
 
 [node name="SideCamera" type="Camera3D" parent="." unique_id=562374222]
 transform = Transform3D(-4.371139e-08, -0.12403445, 0.9922779, 0, 0.9922779, 0.12403445, -1, 5.421718e-09, -4.3373845e-08, 24, 4, 0)
