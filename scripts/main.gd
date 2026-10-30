@@ -5,6 +5,7 @@ extends Node3D
 
 @onready var vehicle: VehicleController = $PlaceholderVehicle
 @onready var side_camera: Camera3D = $SideCamera
+@onready var terrain: Node3D = $ProceduralTerrain
 
 var _debug_label: Label
 
@@ -36,6 +37,7 @@ func _physics_process(delta: float) -> void:
 			+ "Speed: %+.2f m/s   Velocity: %s   Distance: %.1f m\n"
 			+ "Pitch input: %+.1f   Pitch angle: %+.2f rad   Pitch speed: %+.2f rad/s\n"
 			+ "Rear contact: %s (%.2f m)   Front contact: %s (%.2f m)\n"
+			+ "Terrain chunks: %d   Seeded procedural track\n"
 			+ "W/Up accelerate  S/Down reverse  Space brake  A/D pitch  R reset"
 		) % [
 			vehicle.throttle_input,
@@ -52,6 +54,7 @@ func _physics_process(delta: float) -> void:
 			vehicle._wheels[0]["compression"],
 			"YES" if vehicle._wheels[1]["in_contact"] else "NO",
 			vehicle._wheels[1]["compression"],
+			terrain.call("get_active_chunk_count"),
 		]
 	else:
 		_debug_label.visible = false
