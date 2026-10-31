@@ -98,6 +98,12 @@ func get_difficulty_profile() -> Dictionary:
 func get_height(z: float) -> float:
 	if z > -12.0:
 		return 0.05 * sin(z * 0.32)
+	if _stage_theme == "Highway":
+		return 0.08 * sin(z * 0.018) + 0.035 * sin(z * 0.09)
+	if _stage_theme == "Desert":
+		return 0.42 * sin(z * 0.034 + 0.6) + 0.16 * sin(z * 0.11)
+	if _stage_theme == "Moon":
+		return 0.3 * sin(z * 0.025) + 0.22 * sin(z * 0.071 + 1.4)
 	var profile := _difficulty.get_profile(absf(z))
 	var height_scale: float = profile["multiplier"]
 	var height := height_scale * (0.38 * sin(z * 0.052 + 0.8) + 0.19 * sin(z * 0.127 - 0.4))
@@ -493,6 +499,11 @@ func _apply_stage_materials() -> void:
 		side_color = Color(0.26, 0.12, 0.06)
 		edge_color = Color(0.7, 0.34, 0.08)
 		grass_color = Color(0.52, 0.22, 0.04)
+	elif _stage_theme == "Highway":
+		top_colors = [Color(0.055, 0.065, 0.075), Color(0.075, 0.085, 0.1), Color(0.045, 0.055, 0.065)]
+		side_color = Color(0.025, 0.03, 0.035)
+		edge_color = Color(0.9, 0.68, 0.12)
+		grass_color = Color(0.12, 0.16, 0.19)
 	elif _stage_theme == "Snow":
 		top_colors = [Color(0.72, 0.84, 0.9), Color(0.88, 0.94, 0.98), Color(0.55, 0.72, 0.82)]
 		side_color = Color(0.2, 0.28, 0.34)

@@ -14,17 +14,18 @@ var graphics_quality := "High"
 
 const VEHICLES := {
 	"Buggy": {"price": 0, "torque": 1.0, "grip": 1.0, "nitro": 1.0, "color": Color(1.0, 0.18, 0.015)},
-	"Trail Bike": {"price": 2500, "torque": 0.78, "grip": 0.86, "nitro": 1.3, "color": Color(0.08, 0.62, 1.0)},
-	"Quad Runner": {"price": 7500, "torque": 1.12, "grip": 1.18, "nitro": 0.92, "color": Color(0.95, 0.72, 0.08)},
-	"Monster Truck": {"price": 20000, "torque": 1.38, "grip": 1.28, "nitro": 0.78, "color": Color(0.72, 0.12, 0.08)},
+	"Trail Bike": {"price": 1, "torque": 0.78, "grip": 0.86, "nitro": 1.3, "color": Color(0.08, 0.62, 1.0)},
+	"Quad Runner": {"price": 1, "torque": 1.12, "grip": 1.18, "nitro": 0.92, "color": Color(0.95, 0.72, 0.08)},
+	"Monster Truck": {"price": 1, "torque": 1.38, "grip": 1.28, "nitro": 0.78, "color": Color(0.72, 0.12, 0.08)},
 }
 
 const STAGES := {
 	"Highlands": {"price": 0, "label": "GREEN HIGHLANDS"},
-	"Desert": {"price": 1500, "label": "EMBER DESERT"},
-	"Snow": {"price": 6000, "label": "FROST RUN"},
-	"Mars": {"price": 15000, "label": "MARS FRONTIER"},
-	"Moon": {"price": 30000, "label": "LUNAR CRATER"},
+	"Desert": {"price": 1, "label": "EMBER DESERT"},
+	"Highway": {"price": 1, "label": "NEON HIGHWAY"},
+	"Snow": {"price": 1, "label": "FROST RUN"},
+	"Mars": {"price": 1, "label": "MARS FRONTIER"},
+	"Moon": {"price": 1, "label": "LUNAR CRATER"},
 }
 
 

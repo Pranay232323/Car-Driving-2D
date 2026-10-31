@@ -69,6 +69,10 @@ func configure_vehicle(name: String, data: Dictionary) -> void:
 		visuals.set_vehicle_variant(name, data.get("color", Color(1.0, 0.18, 0.015)))
 
 
+func set_stage_gravity(stage_name: String) -> void:
+	gravity_scale = 0.34 if stage_name == "Moon" else 0.72 if stage_name == "Mars" else 1.0
+
+
 func request_reset() -> void:
 	_reset_requested = true
 

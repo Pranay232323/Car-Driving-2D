@@ -9,6 +9,7 @@ const MAIN_MENU_SCRIPT = preload("res://scripts/main_menu.gd")
 @onready var side_camera: Camera3D = $SideCamera
 @onready var terrain: Node3D = $ProceduralTerrain
 @onready var environment_visuals: Node3D = $EnvironmentVisuals
+@onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var profile = get_node("/root/GameProfile")
 
 var _debug_label: Label
@@ -71,7 +72,39 @@ func _create_main_menu(overlay: CanvasLayer) -> void:
 func _apply_profile() -> void:
 	var vehicle_data: Dictionary = profile.VEHICLES.get(profile.selected_vehicle, profile.VEHICLES["Buggy"])
 	vehicle.configure_vehicle(profile.selected_vehicle, vehicle_data)
+	vehicle.set_stage_gravity(profile.selected_stage)
 	terrain.call("set_stage_theme", profile.selected_stage)
+	environment_visuals.set_stage_theme(profile.selected_stage)
+	_apply_world_sky(profile.selected_stage)
+
+
+func _apply_world_sky(stage_name: String) -> void:
+	var environment := world_environment.environment
+	if environment == null:
+		return
+	var sky := environment.sky
+	var sky_material: ProceduralSkyMaterial = null
+	if sky:
+		sky_material = sky.sky_material as ProceduralSkyMaterial
+	if stage_name == "Moon":
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.005, 0.008, 0.03)
+	elif stage_name == "Highway":
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.18, 0.48, 0.78)
+	elif stage_name == "Desert":
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.82, 0.45, 0.2)
+	elif stage_name == "Mars":
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.26, 0.055, 0.025)
+	elif stage_name == "Snow":
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.48, 0.7, 0.86)
+	else:
+		environment.background_mode = Environment.BG_SKY
+	if sky_material:
+		sky_material.sky_top_color = Color(0.01, 0.015, 0.06) if stage_name == "Moon" else sky_material.sky_top_color
 
 
 func _create_status_hud() -> void:

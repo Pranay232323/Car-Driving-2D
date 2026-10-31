@@ -17,6 +17,8 @@ var _skin: StandardMaterial3D
 var _suit: StandardMaterial3D
 var _harness: StandardMaterial3D
 var _visual_root: Node3D
+var _variant_root: Node3D
+var _variant_name := "Buggy"
 var _shock_roots: Array[Node3D] = []
 var _wheel_names := ["RearWheelNear", "RearWheelFar", "FrontWheelNear", "FrontWheelFar"]
 var _visual_time := 0.0
@@ -29,6 +31,9 @@ func _ready() -> void:
 	_visual_root = Node3D.new()
 	_visual_root.name = "BuggyVisualModel"
 	add_child(_visual_root)
+	_variant_root = Node3D.new()
+	_variant_root.name = "VehicleVariantModel"
+	_visual_root.add_child(_variant_root)
 	_build_body()
 	_build_cage()
 	_build_lights_and_details()
@@ -36,12 +41,124 @@ func _ready() -> void:
 	_build_suspension()
 
 
-func set_vehicle_variant(_variant_name: String, accent_color: Color) -> void:
+func set_vehicle_variant(variant_name: String, accent_color: Color) -> void:
 	if not _orange:
 		return
+	_variant_name = variant_name
 	_orange.albedo_color = accent_color
 	_light.emission = accent_color
 	_spring.albedo_color = accent_color.lightened(0.18)
+	for child in _variant_root.get_children():
+		child.free()
+	for child in _visual_root.get_children():
+		child.visible = variant_name == "Buggy" or child == _variant_root or child.name.begins_with("VisibleShock")
+	_build_variant(variant_name, accent_color)
+	_set_wheel_style(variant_name)
+
+
+func _build_variant(variant_name: String, accent_color: Color) -> void:
+	if variant_name == "Trail Bike":
+		_build_dirt_bike(accent_color)
+	elif variant_name == "Quad Runner":
+		_build_quad(accent_color)
+	elif variant_name == "Monster Truck":
+		_build_monster_truck(accent_color)
+
+
+func _set_wheel_style(variant_name: String) -> void:
+	var wheel_scale := 1.0
+	if variant_name == "Trail Bike":
+		wheel_scale = 0.82
+	elif variant_name == "Monster Truck":
+		wheel_scale = 1.4
+	for wheel_name in _wheel_names:
+		var wheel := get_parent().get_node(wheel_name) as Node3D
+		wheel.scale = Vector3.ONE * wheel_scale
+		wheel.visible = variant_name != "Trail Bike" or wheel_name.ends_with("Near")
+
+
+func _build_dirt_bike(accent: Color) -> void:
+	_box_variant("BikeTank", Vector3(0.42, 0.34, 0.78), Vector3(0.0, 0.64, -0.15), _orange)
+	_box_variant("BikeSeat", Vector3(0.38, 0.12, 0.95), Vector3(0.0, 0.78, 0.56), _dark)
+	_cylinder_variant("BikeFrame", Vector3(0.0, 0.22, -0.35), Vector3(0.0, 0.7, 0.25), 0.045, _orange)
+	_cylinder_variant("BikeFrameRear", Vector3(0.0, 0.22, 0.9), Vector3(0.0, 0.7, 0.25), 0.045, _orange)
+	_cylinder_variant("BikeFork", Vector3(0.0, 0.65, -0.58), Vector3(0.0, -0.18, -1.02), 0.04, _metal)
+	_cylinder_variant("BikeHandlebar", Vector3(-0.25, 0.94, -0.62), Vector3(0.25, 0.94, -0.62), 0.035, _metal)
+	_box_variant("BikeFrontFender", Vector3(0.3, 0.06, 0.58), Vector3(0.0, 0.18, -1.02), _orange)
+	_box_variant("BikeRearFender", Vector3(0.35, 0.06, 0.62), Vector3(0.0, 0.73, 0.92), _orange)
+	_sphere_variant("BikeHelmet", Vector3(0.0, 1.18, 0.25), 0.17, _orange)
+	_cylinder_variant("BikeExhaust", Vector3(0.2, 0.48, 0.6), Vector3(0.2, 0.48, 1.12), 0.045, _metal)
+	_box_variant("BikeEngine", Vector3(0.32, 0.35, 0.42), Vector3(0.0, 0.38, 0.18), _metal)
+	_cylinder_variant("BikeChain", Vector3(0.18, 0.22, 0.35), Vector3(0.18, 0.22, 0.92), 0.025, _dark)
+	_cylinder_variant("BikeFootPeg", Vector3(-0.2, 0.38, 0.28), Vector3(0.2, 0.38, 0.28), 0.025, _metal)
+	_build_rider(Vector3(0.0, 0.0, 0.0), _orange, 0.92)
+
+
+func _build_quad(accent: Color) -> void:
+	_box_variant("QuadBody", Vector3(1.05, 0.35, 1.65), Vector3(0.0, 0.3, 0.1), _orange)
+	_box_variant("QuadSeat", Vector3(0.62, 0.2, 0.72), Vector3(0.0, 0.68, 0.34), _dark)
+	_box_variant("QuadNose", Vector3(0.92, 0.2, 0.58), Vector3(0.0, 0.58, -0.76), _orange)
+	_cylinder_variant("QuadHandlebar", Vector3(-0.38, 0.98, -0.75), Vector3(0.38, 0.98, -0.75), 0.05, _metal)
+	_box_variant("QuadFrontRack", Vector3(1.0, 0.08, 0.35), Vector3(0.0, 0.82, -1.02), _dark)
+	_box_variant("QuadEngine", Vector3(0.62, 0.35, 0.55), Vector3(0.0, 0.42, 0.32), _metal)
+	_cylinder_variant("QuadRearAxle", Vector3(-0.9, 0.18, 0.75), Vector3(0.9, 0.18, 0.75), 0.045, _metal)
+	for x in [-0.74, 0.74]:
+		_cylinder_variant("QuadFender", Vector3(x, 0.56, -0.78), Vector3(x, 0.56, -1.18), 0.055, _orange)
+		_cylinder_variant("QuadRearFender", Vector3(x, 0.56, 0.62), Vector3(x, 0.56, 1.1), 0.055, _orange)
+	_sphere_variant("QuadHelmet", Vector3(0.0, 1.2, 0.26), 0.19, _orange)
+	_build_rider(Vector3(0.0, 0.0, 0.18), _orange, 0.9)
+
+
+func _build_monster_truck(accent: Color) -> void:
+	_box_variant("MonsterChassis", Vector3(1.55, 0.4, 2.7), Vector3(0.0, 0.52, 0.1), _dark)
+	_box_variant("MonsterCab", Vector3(1.2, 1.0, 1.35), Vector3(0.0, 1.18, -0.18), _orange)
+	_box_variant("MonsterWindow", Vector3(1.22, 0.42, 0.06), Vector3(0.0, 1.4, -0.88), _glass)
+	_box_variant("MonsterHood", Vector3(1.3, 0.3, 0.72), Vector3(0.0, 1.0, -1.18), _orange)
+	_cylinder_variant("MonsterFrontBar", Vector3(-0.9, 0.58, -1.72), Vector3(0.9, 0.58, -1.72), 0.09, _metal)
+	_cylinder_variant("MonsterRoofBar", Vector3(-0.72, 1.75, 0.45), Vector3(0.72, 1.75, 0.45), 0.075, _orange)
+	_box_variant("MonsterRearBed", Vector3(1.3, 0.28, 0.82), Vector3(0.0, 0.9, 1.08), _dark)
+	_box_variant("MonsterEngine", Vector3(0.8, 0.42, 0.72), Vector3(0.0, 1.18, 0.92), _metal)
+	_cylinder_variant("MonsterExhaust", Vector3(0.72, 0.75, 0.82), Vector3(0.72, 1.55, 0.82), 0.07, _metal)
+	for x in [-0.88, 0.88]:
+		_cylinder_variant("MonsterShock", Vector3(x, -0.05, -1.0), Vector3(x, 0.75, -1.0), 0.075, _orange)
+		_cylinder_variant("MonsterShockRear", Vector3(x, -0.05, 1.0), Vector3(x, 0.75, 1.0), 0.075, _orange)
+	_sphere_variant("MonsterHeadlight", Vector3(-0.58, 1.08, -1.56), 0.13, _light)
+	_sphere_variant("MonsterHeadlight", Vector3(0.58, 1.08, -1.56), 0.13, _light)
+	_build_rider(Vector3(0.0, 0.0, 0.05), _orange, 0.82)
+
+
+func _build_rider(offset: Vector3, accent: Material, scale_factor: float) -> void:
+	var head_position := offset + Vector3(0.0, 1.25 * scale_factor, -0.02)
+	_sphere_variant("VariantHelmet", head_position, 0.22 * scale_factor, accent)
+	_sphere_variant("VariantVisor", head_position + Vector3(0.0, 0.0, -0.17 * scale_factor), 0.14 * scale_factor, _glass)
+	_box_variant("VariantTorso", Vector3(0.38, 0.48, 0.28) * scale_factor, offset + Vector3(0.0, 0.84 * scale_factor, 0.12), _suit)
+	_cylinder_variant("VariantArmNear", offset + Vector3(-0.16, 1.0 * scale_factor, -0.02), offset + Vector3(-0.28, 0.82 * scale_factor, -0.42), 0.055 * scale_factor, _suit)
+	_cylinder_variant("VariantArmFar", offset + Vector3(0.16, 1.0 * scale_factor, -0.02), offset + Vector3(0.28, 0.82 * scale_factor, -0.42), 0.055 * scale_factor, _suit)
+
+
+func _box_variant(node_name: String, mesh_size: Vector3, position: Vector3, material: Material) -> void:
+	_box(node_name, mesh_size, position, material, _variant_root)
+
+
+func _sphere_variant(node_name: String, position: Vector3, radius: float, material: Material) -> void:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 12
+	mesh.rings = 6
+	var visual := MeshInstance3D.new()
+	visual.name = node_name
+	visual.mesh = mesh
+	visual.material_override = material
+	visual.position = position
+	_variant_root.add_child(visual)
+
+
+func _cylinder_variant(node_name: String, start: Vector3, end: Vector3, radius: float, material: Material) -> void:
+	var visual := Node3D.new()
+	visual.name = node_name
+	_variant_root.add_child(visual)
+	_set_segment(visual, start, end, radius, material)
 
 
 func _hide_placeholder_visuals() -> void:
@@ -278,7 +395,13 @@ func _update_shocks() -> void:
 		_set_segment(shock, anchors[index], target, 0.055, _spring)
 
 
-func _box(node_name: String, size: Vector3, position: Vector3, material: Material) -> void:
+func _box(
+	node_name: String,
+	size: Vector3,
+	position: Vector3,
+	material: Material,
+	parent: Node3D = null
+) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	var visual := MeshInstance3D.new()
@@ -286,7 +409,8 @@ func _box(node_name: String, size: Vector3, position: Vector3, material: Materia
 	visual.mesh = mesh
 	visual.material_override = material
 	visual.position = position
-	_visual_root.add_child(visual)
+	var target := _visual_root if parent == null else parent
+	target.add_child(visual)
 
 
 func _sphere(node_name: String, position: Vector3, radius: float, material: Material) -> void:
