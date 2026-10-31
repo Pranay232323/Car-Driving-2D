@@ -19,6 +19,8 @@ var _harness: StandardMaterial3D
 var _visual_root: Node3D
 var _shock_roots: Array[Node3D] = []
 var _wheel_names := ["RearWheelNear", "RearWheelFar", "FrontWheelNear", "FrontWheelFar"]
+var _visual_time := 0.0
+var _body_bounce := 0.0
 
 
 func _ready() -> void:
@@ -54,7 +56,21 @@ func _hide_placeholder_visuals() -> void:
 			visual.visible = false
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_visual_time += delta
+	var controller := get_parent() as VehicleController
+	if controller and _visual_root:
+		var compression_total := 0.0
+		var contact_count := 0
+		for wheel: Dictionary in controller._wheels:
+			if wheel["in_contact"]:
+				compression_total += float(wheel["compression"])
+				contact_count += 1
+		var average_compression := compression_total / float(maxi(contact_count, 1))
+		var vibration := sin(_visual_time * 38.0) * controller.throttle_input * 0.006
+		var target_bounce := -average_compression * 0.045 + vibration
+		_body_bounce = lerpf(_body_bounce, target_bounce, 1.0 - exp(-12.0 * delta))
+		_visual_root.position.y = _body_bounce
 	_update_shocks()
 
 
