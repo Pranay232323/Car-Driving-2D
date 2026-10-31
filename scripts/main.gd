@@ -1,5 +1,6 @@
 extends Node3D
 const GAME_HUD_SCRIPT = preload("res://scripts/game_hud.gd")
+const MAIN_MENU_SCRIPT = preload("res://scripts/main_menu.gd")
 
 @export var camera_follow_speed := 5.0
 @export var show_debug_overlay := false
@@ -8,6 +9,7 @@ const GAME_HUD_SCRIPT = preload("res://scripts/game_hud.gd")
 @onready var side_camera: Camera3D = $SideCamera
 @onready var terrain: Node3D = $ProceduralTerrain
 @onready var environment_visuals: Node3D = $EnvironmentVisuals
+@onready var profile = get_node("/root/GameProfile")
 
 var _debug_label: Label
 var _distance_label: Label
@@ -27,6 +29,7 @@ var _coins_collected := 0
 var _restart_timer := 0.0
 var _fuel := 100.0
 var _fuel_game_over := false
+var _main_menu: Control
 const FUEL_CONSUMPTION_PER_SECOND := 1.8
 
 
@@ -46,9 +49,29 @@ func _ready() -> void:
 	_debug_label.visible = show_debug_overlay
 	_create_game_hud()
 	_create_status_hud()
+	_create_main_menu(overlay)
 	terrain.connect("coin_collected", Callable(self, "_on_coin_collected"))
 	terrain.connect("fuel_collected", Callable(self, "_on_fuel_collected"))
 	vehicle.stunt_completed.connect(_on_stunt_completed)
+	_best_distance = profile.best_distance
+	_apply_profile()
+
+
+func _create_main_menu(overlay: CanvasLayer) -> void:
+	_main_menu = MAIN_MENU_SCRIPT.new()
+	_main_menu.name = "MainMenu"
+	_main_menu.setup(self, profile)
+	overlay.add_child(_main_menu)
+	_main_menu.play_requested.connect(_on_play_requested)
+	_main_menu.vehicle_changed.connect(_apply_profile)
+	_main_menu.stage_changed.connect(_apply_profile)
+	get_tree().paused = true
+
+
+func _apply_profile() -> void:
+	var vehicle_data: Dictionary = profile.VEHICLES.get(profile.selected_vehicle, profile.VEHICLES["Buggy"])
+	vehicle.configure_vehicle(profile.selected_vehicle, vehicle_data)
+	terrain.call("set_stage_theme", profile.selected_stage)
 
 
 func _create_status_hud() -> void:
@@ -181,10 +204,10 @@ func _physics_process(delta: float) -> void:
 func _check_elimination(delta: float) -> void:
 	var distance := maxf(-vehicle.global_position.z, 0.0)
 	_best_distance = maxf(_best_distance, distance)
-	var pitch := absf(wrapf(vehicle.global_rotation.x, -PI, PI))
+	if distance > profile.best_distance:
+		profile.best_distance = distance
 	var fallen: bool = vehicle.global_position.y < -4.5
-	var overturned: bool = pitch > 1.75 and not vehicle._wheels[0]["in_contact"] and not vehicle._wheels[1]["in_contact"]
-	if fallen or overturned:
+	if fallen:
 		_elimination_timer += delta
 	else:
 		_elimination_timer = 0.0
@@ -204,6 +227,13 @@ func _restart_run() -> void:
 	_status_panel.visible = false
 	_status_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_restart_timer = 0.0
+	profile.save_profile()
+
+
+func _on_play_requested() -> void:
+	_main_menu.visible = false
+	get_tree().paused = false
+
 
 
 func _update_fuel(delta: float) -> void:
@@ -285,10 +315,14 @@ func _on_fuel_collected(amount: float) -> void:
 	_update_fuel_hud()
 
 
-func _on_coin_collected() -> void:
-	_coins_collected += 1
+func _on_coin_collected(value: int) -> void:
+	_coins_collected += value
+	profile.coins += value
+	profile.save_profile()
+	if is_instance_valid(_game_hud) and _game_hud.has_method("show_coin_pickup"):
+		_game_hud.call("show_coin_pickup", value)
 	if is_instance_valid(_coin_label):
-		_coin_label.text = "◆  %04d COINS" % _coins_collected
+		_coin_label.text = "◆  %04d COINS  +%d" % [_coins_collected, value]
 
 
 func _on_stunt_completed(flips: int, airtime: float) -> void:
@@ -296,5 +330,7 @@ func _on_stunt_completed(flips: int, airtime: float) -> void:
 	var flip_bonus := flips * 10
 	var stunt_reward := flip_bonus + airtime_bonus
 	_coins_collected += stunt_reward
+	profile.coins += stunt_reward
+	profile.save_profile()
 	if is_instance_valid(_coin_label):
 		_coin_label.text = "◆  %04d COINS  STUNT +%d" % [_coins_collected, stunt_reward]

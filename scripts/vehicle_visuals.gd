@@ -36,6 +36,14 @@ func _ready() -> void:
 	_build_suspension()
 
 
+func set_vehicle_variant(_variant_name: String, accent_color: Color) -> void:
+	if not _orange:
+		return
+	_orange.albedo_color = accent_color
+	_light.emission = accent_color
+	_spring.albedo_color = accent_color.lightened(0.18)
+
+
 func _hide_placeholder_visuals() -> void:
 	for node_name in [
 		"ChassisVisual",

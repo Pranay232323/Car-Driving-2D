@@ -35,6 +35,9 @@ Car Driving 2.5D is an original 2.5D off-road vehicle game built with Godot 4.7.
 - Game-over overlay with final distance, coins, best distance, restart, and scene reload actions.
 - Keyboard and responsive touch controls.
 - Godot Compatibility renderer for Windows and Android-oriented performance.
+- Premium in-game command menu with persistent coins and best distance.
+- Garage selections for Buggy, Trail Bike, Quad Runner, and Monster Truck variants.
+- Unlockable stage palettes for Highlands, Desert, Snow, Mars, and Moon.
 
 ## Requirements
 
@@ -130,6 +133,20 @@ Terrain collision is generated from the same surface data used by the visible te
 [scripts/game_hud.gd](scripts/game_hud.gd) draws the procedural dashboard and emits touch-control signals. [scripts/main.gd](scripts/main.gd) owns run state, fuel consumption, coin totals, elimination, restart, game-over presentation, and HUD values.
 
 Fuel consumption is calculated in the main controller and is not changed by the HUD. Nitro consumption and recharge remain in the vehicle controller.
+
+### Main menu, garage, and profile
+
+The main scene opens with a responsive menu overlay. **Play** unpauses the existing
+gameplay scene, **Garage** selects vehicle and stage variants, **Settings** exposes
+volume and quality controls, and **Exit** quits the desktop application. Press
+`Escape` during a run to pause and reopen the command menu.
+
+Progress is stored locally in `user://car_driving_profile.json`. The profile stores
+coins, best distance, selected vehicle and stage, and menu settings. The added
+vehicles currently use the existing procedural buggy chassis with distinct
+performance profiles and accent colors; separate authored meshes can be introduced
+later without changing the garage contract. Stages currently change the procedural
+terrain palette while preserving the tested collision and difficulty systems.
 
 ## Project structure
 

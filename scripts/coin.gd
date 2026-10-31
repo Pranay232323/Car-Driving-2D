@@ -1,8 +1,9 @@
 extends Area3D
 class_name Coin
 
-signal collected
+signal collected(value: int)
 
+@export var value := 10
 @export var bob_height := 0.10
 @export var bob_speed := 2.8
 @export var rotation_speed := 3.2
@@ -32,7 +33,7 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	_collected = true
 	set_deferred("monitoring", false)
-	collected.emit()
+	collected.emit(value)
 	var tween := create_tween()
 	tween.set_parallel(true)
 	if _visual:

@@ -47,11 +47,26 @@ var engine_rpm := 900.0
 var fuel_depleted := false
 var touch_accelerate := 0.0
 var touch_brake := 0.0
+var vehicle_torque_multiplier := 1.0
+var vehicle_grip_multiplier := 1.0
+var vehicle_nitro_multiplier := 1.0
+var vehicle_name := "Buggy"
 var _was_airborne := false
 var _stunt_air_time := 0.0
 var _stunt_rotation := 0.0
 
 signal stunt_completed(flips: int, airtime: float)
+
+
+func configure_vehicle(name: String, data: Dictionary) -> void:
+	vehicle_name = name
+	vehicle_torque_multiplier = float(data.get("torque", 1.0))
+	vehicle_grip_multiplier = float(data.get("grip", 1.0))
+	vehicle_nitro_multiplier = float(data.get("nitro", 1.0))
+	nitro_amount = NITRO_CAPACITY * vehicle_nitro_multiplier
+	var visuals := get_node_or_null("VehicleVisuals") as VehicleVisuals
+	if visuals:
+		visuals.set_vehicle_variant(name, data.get("color", Color(1.0, 0.18, 0.015)))
 
 
 func request_reset() -> void:
@@ -181,7 +196,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if nitro_active:
 		nitro_amount = maxf(nitro_amount - NITRO_DRAIN_RATE * delta, 0.0)
 	else:
-		nitro_amount = minf(nitro_amount + NITRO_RECHARGE_RATE * delta, NITRO_CAPACITY)
+		nitro_amount = minf(nitro_amount + NITRO_RECHARGE_RATE * vehicle_nitro_multiplier * delta, NITRO_CAPACITY * vehicle_nitro_multiplier)
 	throttle_input = throttle
 	brake_input = brake
 	applied_engine_torque = 0.0
@@ -250,7 +265,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		if tire_forward.length_squared() < 0.001:
 			tire_forward = forward
 		var angular_speed: float = wheel["angular_speed"]
-		var drive_torque := ENGINE_TORQUE * throttle if wheel["driven"] else 0.0
+		var drive_torque := ENGINE_TORQUE * vehicle_torque_multiplier * throttle if wheel["driven"] else 0.0
 		var tire_force := 0.0
 		var braking_torque := brake * BRAKE_TORQUE
 		if wheel["driven"]:
@@ -258,7 +273,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 		if in_contact:
 			var slip_speed := angular_speed * WHEEL_RADIUS - longitudinal_speed
-			var traction_limit := contact_force * TIRE_FRICTION
+			var traction_limit := contact_force * TIRE_FRICTION * vehicle_grip_multiplier
 			tire_force = clampf(slip_speed * TIRE_SLIP_STIFFNESS, -traction_limit, traction_limit)
 			var max_brake_force := braking_torque / WHEEL_RADIUS
 			var brake_force := clampf(-longitudinal_speed * 1800.0, -max_brake_force, max_brake_force)

@@ -32,6 +32,7 @@ var _rock_mesh: SphereMesh
 var _difficulty = DIFFICULTY_MANAGER_SCRIPT.new()
 var _obstacle_generator = OBSTACLE_GENERATOR_SCRIPT.new()
 var _last_center_chunk := 999999
+var _stage_theme := "Highlands"
 
 
 func _ready() -> void:
@@ -73,6 +74,12 @@ func reset_run() -> void:
 	_chunks.clear()
 	_last_center_chunk = 999999
 	_update_chunks(true)
+
+
+func set_stage_theme(stage_name: String) -> void:
+	_stage_theme = stage_name
+	_apply_stage_materials()
+	reset_run()
 
 
 func get_coin_count() -> int:
@@ -321,33 +328,58 @@ func _add_coins(parent: Node3D, chunk_index: int, z_start: float, z_end: float) 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value + chunk_index * 15485863
 	var profile: Dictionary = _difficulty.get_profile(absf(z_start))
+	var coin_value := _get_coin_value(absf(z_start), rng)
 	var pattern := rng.randi_range(0, 3)
 	var coin_count := 3 + int(float(profile["climb_progress"]) * 2.0)
 	if pattern == 0:
 		var line_start := z_start + 7.0
 		for index in range(coin_count):
-			_spawn_coin(parent, 0.0, line_start - float(index) * 1.15, 1.15)
+			_spawn_coin(parent, 0.0, line_start - float(index) * 1.15, 1.15, coin_value)
 	elif pattern == 1:
 		var arc_start := z_start + 8.0
 		for index in range(coin_count):
 			var progress := float(index) / float(maxi(coin_count - 1, 1))
 			var arc_height := 1.0 + sin(progress * PI) * 0.8
-			_spawn_coin(parent, 0.0, arc_start - float(index) * 1.05, arc_height)
+			_spawn_coin(parent, 0.0, arc_start - float(index) * 1.05, arc_height, coin_value)
 	elif pattern == 2:
 		var cluster_z := rng.randf_range(z_start + 8.0, z_end - 8.0)
 		for index in range(4):
 			var angle := TAU * float(index) / 4.0
-			_spawn_coin(parent, sin(angle) * 0.7, cluster_z + cos(angle) * 0.7, 1.35)
+			_spawn_coin(parent, sin(angle) * 0.7, cluster_z + cos(angle) * 0.7, 1.35, coin_value)
 	else:
 		var trail_start := z_start + 6.0
 		for index in range(coin_count):
 			var z := trail_start - float(index) * 1.2
 			var slope := absf((get_height(z - 0.1) - get_height(z + 0.1)) * 5.0)
-			_spawn_coin(parent, 0.0, z, 1.0 + slope * 0.22)
+			_spawn_coin(parent, 0.0, z, 1.0 + slope * 0.22, coin_value)
 
 
-func _spawn_coin(parent: Node3D, x: float, z: float, clearance: float) -> void:
-	var coin: Node3D = COIN_SCENE.instantiate()
+func _get_coin_value(distance: float, rng: RandomNumberGenerator) -> int:
+	var roll := rng.randf()
+	if roll < 0.01 and distance >= 2500.0:
+		return 1000
+	if roll < 0.04 and distance >= 1800.0:
+		return 500
+	if roll < 0.10 and distance >= 1200.0:
+		return 250
+	if distance >= 2500.0:
+		return 200
+	if distance >= 1800.0:
+		return 100
+	if distance >= 1100.0:
+		return 50
+	if distance >= 700.0:
+		return 25
+	if distance >= 350.0:
+		return 20
+	if distance >= 150.0:
+		return 15
+	return 10
+
+
+func _spawn_coin(parent: Node3D, x: float, z: float, clearance: float, value: int) -> void:
+	var coin := COIN_SCENE.instantiate() as Coin
+	coin.value = value
 	coin.position = Vector3(
 		clampf(x, -terrain_width * 0.3, terrain_width * 0.3),
 		get_height(z) + clearance,
@@ -357,8 +389,8 @@ func _spawn_coin(parent: Node3D, x: float, z: float, clearance: float) -> void:
 	parent.add_child(coin)
 
 
-func _on_coin_collected() -> void:
-	coin_collected.emit()
+func _on_coin_collected(value: int) -> void:
+	coin_collected.emit(value)
 
 
 func _on_fuel_collected(amount: float) -> void:
@@ -443,3 +475,41 @@ func _create_materials() -> void:
 	_rock_mesh.rings = 4
 	_rock_mesh.radius = 1.0
 	_rock_mesh.height = 1.4
+
+
+func _apply_stage_materials() -> void:
+	if _terrain_materials.is_empty():
+		return
+	var top_colors: Array[Color] = [
+		Color(0.42, 0.58, 0.22),
+		Color(0.47, 0.63, 0.25),
+		Color(0.38, 0.53, 0.2),
+	]
+	var side_color := Color(0.16, 0.13, 0.1)
+	var edge_color := Color(0.25, 0.42, 0.12)
+	var grass_color := Color(0.20, 0.39, 0.08)
+	if _stage_theme == "Desert":
+		top_colors = [Color(0.72, 0.38, 0.12), Color(0.84, 0.5, 0.18), Color(0.61, 0.28, 0.08)]
+		side_color = Color(0.26, 0.12, 0.06)
+		edge_color = Color(0.7, 0.34, 0.08)
+		grass_color = Color(0.52, 0.22, 0.04)
+	elif _stage_theme == "Snow":
+		top_colors = [Color(0.72, 0.84, 0.9), Color(0.88, 0.94, 0.98), Color(0.55, 0.72, 0.82)]
+		side_color = Color(0.2, 0.28, 0.34)
+		edge_color = Color(0.7, 0.86, 0.95)
+		grass_color = Color(0.42, 0.62, 0.7)
+	elif _stage_theme == "Mars":
+		top_colors = [Color(0.55, 0.16, 0.08), Color(0.72, 0.24, 0.1), Color(0.4, 0.1, 0.05)]
+		side_color = Color(0.23, 0.07, 0.04)
+		edge_color = Color(0.72, 0.22, 0.08)
+		grass_color = Color(0.45, 0.11, 0.04)
+	elif _stage_theme == "Moon":
+		top_colors = [Color(0.27, 0.29, 0.32), Color(0.42, 0.44, 0.47), Color(0.2, 0.22, 0.25)]
+		side_color = Color(0.1, 0.11, 0.13)
+		edge_color = Color(0.42, 0.45, 0.5)
+		grass_color = Color(0.16, 0.18, 0.2)
+	for index in range(_terrain_materials.size()):
+		_terrain_materials[index].albedo_color = top_colors[index]
+	_terrain_side_material.albedo_color = side_color
+	_grass_edge_material.albedo_color = edge_color
+	_grass_material.albedo_color = grass_color

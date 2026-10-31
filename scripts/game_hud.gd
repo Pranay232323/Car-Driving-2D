@@ -21,6 +21,7 @@ var _rpm_display := 900.0
 var _speed_display := 0.0
 var _coins_display := 0.0
 var _coin_flash := 0.0
+var _coin_flash_value := 0
 var _fuel_flash := 0.0
 var _fuel_flash_amount := 0.0
 var _touches: Dictionary = {}
@@ -41,6 +42,12 @@ func _ready() -> void:
 func show_fuel_pickup(amount: float) -> void:
 	_fuel_flash = 1.0
 	_fuel_flash_amount = amount
+	queue_redraw()
+
+
+func show_coin_pickup(value: int) -> void:
+	_coin_flash = 1.0
+	_coin_flash_value = value
 	queue_redraw()
 
 
@@ -141,6 +148,16 @@ func _draw_coin(origin: Vector2, value: int) -> void:
 	draw_string(_font, origin + Vector2(-5, 7), "C", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.55, 0.28, 0.02))
 	draw_string(_font, origin + Vector2(29, -3), "COINS", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.58, 0.7, 0.75))
 	draw_string(_font, origin + Vector2(29, 29), "%06d" % value, HORIZONTAL_ALIGNMENT_LEFT, -1, 25 + _coin_flash * 3.0, GOLD)
+	if _coin_flash > 0.0:
+		draw_string(
+			_font,
+			origin + Vector2(126, 8),
+			"+%d" % _coin_flash_value,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			14,
+			Color(1.0, 0.9, 0.45, _coin_flash)
+		)
 
 
 func _draw_trophy(center: Vector2) -> void:
