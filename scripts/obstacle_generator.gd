@@ -119,7 +119,7 @@ func _create_obstacle(kind: String, rng: RandomNumberGenerator, ground_height: f
 		material.albedo_color = Color(0.68, 0.33, 0.08)
 	elif kind == "rock_cluster":
 		for rock_index in range(3):
-			var radius := 0.22 + rng.randf_range(0.0, 0.16)
+			var radius := 0.17 + rng.randf_range(0.0, 0.1)
 			var rock_mesh := SphereMesh.new()
 			rock_mesh.radius = radius
 			rock_mesh.height = radius * 1.5
@@ -128,7 +128,7 @@ func _create_obstacle(kind: String, rng: RandomNumberGenerator, ground_height: f
 			rock_mesh.material = material
 			var rock_visual := MeshInstance3D.new()
 			rock_visual.mesh = rock_mesh
-			rock_visual.position = Vector3((rock_index - 1) * 0.38, radius * 0.62, rng.randf_range(-0.18, 0.18))
+			rock_visual.position = Vector3((rock_index - 1) * 0.3, radius * 0.62, rng.randf_range(-0.12, 0.12))
 			visual.add_child(rock_visual)
 			var rock_shape := CollisionShape3D.new()
 			var shape := SphereShape3D.new()
@@ -180,7 +180,7 @@ func _create_obstacle(kind: String, rng: RandomNumberGenerator, ground_height: f
 		material.albedo_color = Color(0.3, 0.16, 0.07)
 		body.position.y = ground_height + 0.06
 	else:
-		var radius := 0.32 if kind == "small_rock" else 0.58
+		var radius := 0.25 if kind == "small_rock" else 0.42
 		var mesh := SphereMesh.new()
 		mesh.radius = radius
 		mesh.height = radius * 1.5

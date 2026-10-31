@@ -300,7 +300,7 @@ func _create_chunk(chunk_index: int) -> Node3D:
 
 
 func _add_fuel(parent: Node3D, chunk_index: int, z_start: float, z_end: float) -> void:
-	if chunk_index <= 0 or chunk_index % 4 != 0:
+	if chunk_index <= 0 or chunk_index % 3 != 0:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value + chunk_index * 32452843
@@ -308,7 +308,7 @@ func _add_fuel(parent: Node3D, chunk_index: int, z_start: float, z_end: float) -
 	var fuel := FUEL_SCENE.instantiate() as Node3D
 	fuel.position = Vector3(
 		0.0,
-		get_height(z) + 1.0,
+		get_height(z) + 1.08,
 		z
 	)
 	fuel.connect("collected", Callable(self, "_on_fuel_collected"))

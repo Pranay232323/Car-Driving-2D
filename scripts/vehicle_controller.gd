@@ -3,14 +3,15 @@ class_name VehicleController
 
 const WHEEL_RADIUS := 0.4
 const WHEEL_REST_LENGTH := 0.52
-const SUSPENSION_RAY_EXTRA := 0.12
+const SUSPENSION_RAY_EXTRA := 0.18
 const TIRE_FRICTION := 1.2
 const TIRE_SLIP_STIFFNESS := 1800.0
 const WHEEL_INERTIA := 2.5
 const ENGINE_TORQUE := 1200.0
 const BRAKE_TORQUE := 3200.0
-const AIR_PITCH_TORQUE := 1500.0
-const MAX_AIR_PITCH_SPEED := 5.2
+const AIR_PITCH_TORQUE := 2200.0
+const AIR_PITCH_STABILIZATION := 420.0
+const MAX_AIR_PITCH_SPEED := 6.8
 const MAX_AIR_PITCH_ANGLE := 12.0
 const NITRO_FORCE := 2400.0
 const NITRO_CAPACITY := 100.0
@@ -122,6 +123,7 @@ func _make_wheel(
 		"previous_spring_length": WHEEL_REST_LENGTH,
 		"wheel_position": anchor + Vector3.DOWN * WHEEL_REST_LENGTH,
 		"previous_wheel_position": anchor + Vector3.DOWN * WHEEL_REST_LENGTH,
+		"visual_wheel_position": anchor + Vector3.DOWN * WHEEL_REST_LENGTH,
 		"contact_position": Vector3.ZERO,
 		"spin": 0.0,
 		"previous_spin": 0.0,
@@ -145,6 +147,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		nitro_active = false
 		engine_rpm = 900.0
 		fuel_depleted = false
+		touch_accelerate = 0.0
+		touch_brake = 0.0
 		air_time = 0.0
 		air_rotation = 0.0
 		_was_airborne = false
@@ -160,6 +164,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			wheel["previous_spin"] = 0.0
 			wheel["wheel_position"] = wheel["anchor"] + Vector3.DOWN * WHEEL_REST_LENGTH
 			wheel["previous_wheel_position"] = wheel["wheel_position"]
+			wheel["visual_wheel_position"] = wheel["wheel_position"]
 		return
 
 	var delta := state.step
@@ -268,6 +273,14 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				angular_speed *= exp(-delta * 1.5)
 
 		wheel["angular_speed"] = angular_speed
+		if (
+			in_contact
+			and absf(longitudinal_speed) < 0.12
+			and is_zero_approx(drive_torque)
+			and is_zero_approx(braking_torque)
+		):
+			angular_speed = 0.0
+			wheel["angular_speed"] = 0.0
 		wheel["spin"] = float(wheel["spin"]) + angular_speed * delta
 
 	var driven_wheel_speed := absf(float(_wheels[0]["angular_speed"]))
@@ -284,11 +297,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var pitch_angle := wrapf(state.transform.basis.get_euler().x, -PI, PI)
 		var can_rotate_forward := pitch_input <= 0.0 or pitch_angle < MAX_AIR_PITCH_ANGLE
 		var can_rotate_backward := pitch_input >= 0.0 or pitch_angle > -MAX_AIR_PITCH_ANGLE
-		if (absf(pitch_speed) < MAX_AIR_PITCH_SPEED or signf(pitch_input) != signf(pitch_speed)) and can_rotate_forward and can_rotate_backward:
-			var air_control := pitch_input
-			if is_zero_approx(air_control):
-				air_control = -signf(state.angular_velocity.x) * 0.08
-			state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE)
+		var air_control := pitch_input
+		if not is_zero_approx(air_control):
+			var control_limit := MAX_AIR_PITCH_SPEED if signf(air_control) == signf(pitch_speed) else MAX_AIR_PITCH_SPEED * 1.35
+			if absf(pitch_speed) < control_limit and can_rotate_forward and can_rotate_backward:
+				state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE)
+		else:
+			state.apply_torque(Vector3.RIGHT * -pitch_speed * AIR_PITCH_STABILIZATION)
 	elif grounded_wheels == 1:
 		state.apply_torque(Vector3.RIGHT * pitch_input * AIR_PITCH_TORQUE * 0.12)
 	if grounded_wheels > 0 and _was_airborne:
@@ -309,11 +324,17 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 func _process(_delta: float) -> void:
 	var interpolation := Engine.get_physics_interpolation_fraction()
+	var visual_follow := 1.0 - exp(-18.0 * _delta)
 	for wheel: Dictionary in _wheels:
-		var wheel_position: Vector3 = wheel["previous_wheel_position"].lerp(
+		var physics_wheel_position: Vector3 = wheel["previous_wheel_position"].lerp(
 			wheel["wheel_position"],
 			interpolation
 		)
+		var wheel_position: Vector3 = wheel["visual_wheel_position"].lerp(
+			physics_wheel_position,
+			visual_follow
+		)
+		wheel["visual_wheel_position"] = wheel_position
 		var spin: float = lerpf(wheel["previous_spin"], wheel["spin"], interpolation)
 		var spring_length: float = lerpf(
 			wheel["previous_spring_length"],

@@ -250,7 +250,8 @@ func _update_shocks() -> void:
 	for index in range(_shock_roots.size()):
 		var wheel := get_parent().get_node(_wheel_names[index]) as Node3D
 		var shock := _shock_roots[index]
-		_set_segment(shock, anchors[index], wheel.position + Vector3(0.0, 0.1, 0.0), 0.055, _spring)
+		var target := wheel.position + Vector3(0.0, 0.1, 0.0)
+		_set_segment(shock, anchors[index], target, 0.055, _spring)
 
 
 func _box(node_name: String, size: Vector3, position: Vector3, material: Material) -> void:

@@ -135,10 +135,12 @@ func _physics_process(delta: float) -> void:
 	side_camera.size = lerpf(side_camera.size, target_camera_size, 1.0 - exp(-4.0 * delta))
 	var profile: Dictionary = terrain.call("get_difficulty_profile")
 	_game_hud.set("distance", int(maxf(-vehicle.global_position.z, 0.0)))
+	_game_hud.set("best_distance", int(_best_distance))
 	_game_hud.set("coins", _coins_collected)
 	_game_hud.set("fuel", _fuel)
 	_game_hud.set("nitro", vehicle.nitro_amount)
 	_game_hud.set("rpm", vehicle.engine_rpm)
+	_game_hud.set("speed", speed * 3.6)
 	_game_hud.set("throttle", vehicle.throttle_input)
 	_game_hud.set("brake", vehicle.brake_input)
 	_check_elimination(delta)
@@ -278,6 +280,8 @@ func _on_touch_brake_changed(value: float) -> void:
 
 func _on_fuel_collected(amount: float) -> void:
 	_fuel = minf(_fuel + amount, 100.0)
+	if is_instance_valid(_game_hud) and _game_hud.has_method("show_fuel_pickup"):
+		_game_hud.call("show_fuel_pickup", amount)
 	_update_fuel_hud()
 
 
@@ -288,7 +292,9 @@ func _on_coin_collected() -> void:
 
 
 func _on_stunt_completed(flips: int, airtime: float) -> void:
-	var airtime_bonus := maxi(int(floor(airtime * 2.0)), 1)
-	_coins_collected += flips * 5 + airtime_bonus
+	var airtime_bonus := maxi(int(floor(airtime * 4.0)), 1)
+	var flip_bonus := flips * 10
+	var stunt_reward := flip_bonus + airtime_bonus
+	_coins_collected += stunt_reward
 	if is_instance_valid(_coin_label):
-		_coin_label.text = "◆  %04d COINS  STUNT +%d" % [_coins_collected, flips * 5 + airtime_bonus]
+		_coin_label.text = "◆  %04d COINS  STUNT +%d" % [_coins_collected, stunt_reward]
