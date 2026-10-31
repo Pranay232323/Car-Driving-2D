@@ -23,6 +23,7 @@ var _shock_roots: Array[Node3D] = []
 var _wheel_names := ["RearWheelNear", "RearWheelFar", "FrontWheelNear", "FrontWheelFar"]
 var _visual_time := 0.0
 var _body_bounce := 0.0
+var _dust_emitters: Array[GPUParticles3D] = []
 
 
 func _ready() -> void:
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_build_lights_and_details()
 	_build_wheels()
 	_build_suspension()
+	_build_dust_emitters()
 
 
 func set_vehicle_variant(variant_name: String, accent_color: Color) -> void:
@@ -196,7 +198,43 @@ func _process(delta: float) -> void:
 		var target_bounce := -average_compression * 0.045 + vibration
 		_body_bounce = lerpf(_body_bounce, target_bounce, 1.0 - exp(-12.0 * delta))
 		_visual_root.position.y = _body_bounce
+		var forward_speed := controller.linear_velocity.dot(-controller.global_transform.basis.z)
+		var emit_dust: bool = forward_speed > 1.2 and controller._wheels[0]["in_contact"] and controller.throttle_input > 0.05
+		for emitter in _dust_emitters:
+			emitter.emitting = emit_dust
 	_update_shocks()
+
+
+func _build_dust_emitters() -> void:
+	var dust_material := StandardMaterial3D.new()
+	dust_material.albedo_color = Color(0.42, 0.3, 0.18, 0.72)
+	dust_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	dust_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var particle_material := ParticleProcessMaterial.new()
+	particle_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	particle_material.emission_box_extents = Vector3(0.18, 0.04, 0.12)
+	particle_material.direction = Vector3(0.0, 0.45, 0.4)
+	particle_material.spread = 32.0
+	particle_material.initial_velocity_min = 0.5
+	particle_material.initial_velocity_max = 1.4
+	particle_material.gravity = Vector3(0.0, -0.5, 0.0)
+	particle_material.scale_min = 0.06
+	particle_material.scale_max = 0.16
+	for z in [0.95]:
+		var emitter := GPUParticles3D.new()
+		emitter.name = "RearWheelDust"
+		emitter.position = Vector3(0.0, -0.28, z)
+		emitter.amount = 18
+		emitter.lifetime = 0.6
+		emitter.randomness = 0.8
+		emitter.visibility_aabb = AABB(Vector3(-2, -1, -2), Vector3(4, 3, 4))
+		emitter.process_material = particle_material
+		var mesh := QuadMesh.new()
+		mesh.size = Vector2(0.18, 0.18)
+		mesh.material = dust_material
+		emitter.draw_pass_1 = mesh
+		_visual_root.add_child(emitter)
+		_dust_emitters.append(emitter)
 
 
 func _create_materials() -> void:

@@ -13,6 +13,7 @@ var brake := 0.0
 
 signal accelerator_changed(value: float)
 signal brake_changed(value: float)
+signal pause_requested
 
 var _font: Font
 var _fuel_display := 100.0
@@ -25,6 +26,7 @@ var _coin_flash_value := 0
 var _fuel_flash := 0.0
 var _fuel_flash_amount := 0.0
 var _touches: Dictionary = {}
+var _pause_rect := Rect2()
 
 const GOLD := Color(1.0, 0.78, 0.22)
 const CYAN := Color(0.2, 0.86, 1.0)
@@ -66,9 +68,20 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _pause_rect.has_point(event.position / _ui_scale()):
+			pause_requested.emit()
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			_touches[event.index] = event.position
+			var touch_position: Vector2 = event.position / _ui_scale()
+			if _pause_rect.has_point(touch_position):
+				pause_requested.emit()
+				_touches.erase(event.index)
+				get_viewport().set_input_as_handled()
+				return
 		else:
 			_touches.erase(event.index)
 		_emit_touch_state()
@@ -102,10 +115,18 @@ func _draw() -> void:
 	var scale_factor := _ui_scale()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(scale_factor, scale_factor))
 	var viewport_size := size / scale_factor
+	_pause_rect = Rect2(viewport_size.x - 82.0, 176.0, 58.0, 42.0)
+	_draw_pause_button()
 	_draw_top_bar(viewport_size)
 	_draw_dashboard(viewport_size)
-	_draw_pedal(Vector2(108.0, viewport_size.y - 114.0), "BRAKE", brake > 0.01, Color(1.0, 0.28, 0.2))
-	_draw_pedal(Vector2(viewport_size.x - 108.0, viewport_size.y - 114.0), "ACCELERATE", throttle > 0.01, Color(0.35, 1.0, 0.5))
+	_draw_pedal(Vector2(108.0, viewport_size.y - 104.0), "BRAKE", brake > 0.01, Color(1.0, 0.28, 0.2))
+	_draw_pedal(Vector2(viewport_size.x - 108.0, viewport_size.y - 104.0), "ACCELERATE", throttle > 0.01, Color(0.35, 1.0, 0.5))
+
+
+func _draw_pause_button() -> void:
+	_draw_glass(_pause_rect, Color(0.035, 0.06, 0.075, 0.94), Color(0.45, 0.62, 0.68))
+	draw_rect(Rect2(_pause_rect.position + Vector2(20, 11), Vector2(5, 20)), GOLD)
+	draw_rect(Rect2(_pause_rect.position + Vector2(32, 11), Vector2(5, 20)), GOLD)
 
 
 func _draw_top_bar(viewport_size: Vector2) -> void:
@@ -128,7 +149,7 @@ func _draw_distance(origin: Vector2) -> void:
 
 
 func _draw_status_stack(origin: Vector2) -> void:
-	_draw_soft_shadow(Rect2(origin - Vector2(20, 25), Vector2(260, 182)))
+	_draw_glass(Rect2(origin - Vector2(20, 25), Vector2(270, 182)), Color(0.035, 0.06, 0.075, 0.96), PANEL_EDGE)
 	_draw_distance(origin)
 	_draw_coin(origin + Vector2(7, 63), int(round(_coins_display)))
 	_draw_trophy(origin + Vector2(8, 118))
@@ -175,7 +196,7 @@ func _draw_score_badge(center: Vector2) -> void:
 
 
 func _draw_resource_stack(origin: Vector2) -> void:
-	_draw_soft_shadow(Rect2(origin - Vector2(30, 25), Vector2(340, 116)))
+	_draw_glass(Rect2(origin - Vector2(30, 25), Vector2(340, 116)), Color(0.035, 0.06, 0.075, 0.96), PANEL_EDGE)
 	_draw_fuel(origin)
 	_draw_nitro(origin + Vector2(0, 51))
 

@@ -9,10 +9,9 @@ const TIRE_SLIP_STIFFNESS := 1800.0
 const WHEEL_INERTIA := 2.5
 const ENGINE_TORQUE := 1200.0
 const BRAKE_TORQUE := 3200.0
-const AIR_PITCH_TORQUE := 2200.0
+const AIR_PITCH_TORQUE := 3000.0
 const AIR_PITCH_STABILIZATION := 420.0
-const MAX_AIR_PITCH_SPEED := 6.8
-const MAX_AIR_PITCH_ANGLE := 12.0
+const MAX_AIR_PITCH_SPEED := 8.5
 const NITRO_FORCE := 2400.0
 const NITRO_CAPACITY := 100.0
 const NITRO_DRAIN_RATE := 30.0
@@ -195,7 +194,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if fuel_depleted:
 		throttle = 0.0
 	var brake := maxf(Input.get_action_strength("vehicle_brake"), touch_brake)
-	pitch_input = Input.get_axis("vehicle_pitch_backward", "vehicle_pitch_forward")
+	var backflip_input := Input.get_action_strength("vehicle_pitch_forward")
+	var front_flip_input := Input.get_action_strength("vehicle_pitch_backward")
+	pitch_input = backflip_input - front_flip_input
 	nitro_active = Input.is_action_pressed("vehicle_nitro") and throttle > 0.05 and nitro_amount > 0.0
 	if nitro_active:
 		nitro_amount = maxf(nitro_amount - NITRO_DRAIN_RATE * delta, 0.0)
@@ -313,13 +314,10 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		air_rotation = _stunt_rotation
 		_was_airborne = true
 		var pitch_speed := state.angular_velocity.x
-		var pitch_angle := wrapf(state.transform.basis.get_euler().x, -PI, PI)
-		var can_rotate_forward := pitch_input <= 0.0 or pitch_angle < MAX_AIR_PITCH_ANGLE
-		var can_rotate_backward := pitch_input >= 0.0 or pitch_angle > -MAX_AIR_PITCH_ANGLE
 		var air_control := pitch_input
 		if not is_zero_approx(air_control):
 			var control_limit := MAX_AIR_PITCH_SPEED if signf(air_control) == signf(pitch_speed) else MAX_AIR_PITCH_SPEED * 1.35
-			if absf(pitch_speed) < control_limit and can_rotate_forward and can_rotate_backward:
+			if absf(pitch_speed) < control_limit:
 				state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE)
 		else:
 			state.apply_torque(Vector3.RIGHT * -pitch_speed * AIR_PITCH_STABILIZATION)

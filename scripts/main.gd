@@ -31,10 +31,12 @@ var _restart_timer := 0.0
 var _fuel := 100.0
 var _fuel_game_over := false
 var _main_menu: Control
+var _rollover_timer := 0.0
 const FUEL_CONSUMPTION_PER_SECOND := 1.8
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	var overlay := CanvasLayer.new()
 	overlay.name = "VehicleDebugOverlay"
 	add_child(overlay)
@@ -56,6 +58,12 @@ func _ready() -> void:
 	vehicle.stunt_completed.connect(_on_stunt_completed)
 	_best_distance = profile.best_distance
 	_apply_profile()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_toggle_pause_menu()
+		get_viewport().set_input_as_handled()
 
 
 func _create_main_menu(overlay: CanvasLayer) -> void:
@@ -127,6 +135,60 @@ func _create_status_hud() -> void:
 	_status_panel.add_child(_status_label)
 
 
+func _toggle_pause_menu() -> void:
+	if _eliminated:
+		return
+	if _status_panel.visible:
+		return
+	if get_tree().paused:
+		_resume_game()
+	else:
+		_show_pause_menu()
+
+
+func _show_pause_menu() -> void:
+	get_tree().paused = true
+	_status_panel.visible = true
+	_status_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_status_label.text = "PAUSED"
+	_create_pause_buttons()
+
+
+func _create_pause_buttons() -> void:
+	for child in _status_panel.get_children():
+		if child is Button:
+			child.queue_free()
+	var buttons := VBoxContainer.new()
+	buttons.set_anchors_preset(Control.PRESET_CENTER)
+	buttons.position = Vector2(-110.0, 42.0)
+	buttons.size = Vector2(220.0, 168.0)
+	buttons.add_theme_constant_override("separation", 12)
+	_status_panel.add_child(buttons)
+	for button_data in [
+		["RESUME", Callable(self, "_resume_game")],
+		["RESTART", Callable(self, "_restart_from_pause")],
+		["MAIN MENU", Callable(self, "_return_to_main_menu")],
+	]:
+		var button := Button.new()
+		button.text = button_data[0]
+		button.custom_minimum_size = Vector2(220.0, 48.0)
+		button.pressed.connect(button_data[1])
+		buttons.add_child(button)
+
+
+func _resume_game() -> void:
+	_status_panel.visible = false
+	_status_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_tree().paused = false
+
+
+func _restart_from_pause() -> void:
+	_status_panel.visible = false
+	_status_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_tree().paused = false
+	_restart_run()
+
+
 func _create_game_hud() -> void:
 	var overlay := get_node("VehicleDebugOverlay") as CanvasLayer
 	_game_hud = GAME_HUD_SCRIPT.new()
@@ -134,6 +196,7 @@ func _create_game_hud() -> void:
 	overlay.add_child(_game_hud)
 	_game_hud.accelerator_changed.connect(Callable(self, "_on_touch_accelerator_changed"))
 	_game_hud.brake_changed.connect(Callable(self, "_on_touch_brake_changed"))
+	_game_hud.pause_requested.connect(_toggle_pause_menu)
 	_hud_panel = ColorRect.new()
 	_hud_panel.visible = false
 	overlay.add_child(_hud_panel)
@@ -239,16 +302,25 @@ func _check_elimination(delta: float) -> void:
 	_best_distance = maxf(_best_distance, distance)
 	if distance > profile.best_distance:
 		profile.best_distance = distance
-	var fallen: bool = vehicle.global_position.y < -4.5
+	var fallen: bool = vehicle.global_position.y < -5.5
 	if fallen:
 		_elimination_timer += delta
 	else:
 		_elimination_timer = 0.0
-	if _elimination_timer > 0.65:
+	var up_direction := vehicle.global_transform.basis.y.normalized()
+	var upside_down := up_direction.dot(Vector3.UP) < -0.58
+	var nearly_stopped := vehicle.linear_velocity.length() < 1.4 and absf(vehicle.angular_velocity.x) < 1.5
+	var has_ground_contact := bool(vehicle._wheels[0]["in_contact"]) or bool(vehicle._wheels[1]["in_contact"])
+	if upside_down and nearly_stopped and has_ground_contact:
+		_rollover_timer += delta
+	else:
+		_rollover_timer = maxf(_rollover_timer - delta * 2.0, 0.0)
+	if _elimination_timer > 0.7 or _rollover_timer > 1.25:
 		_show_game_over("RUN OVER")
 
 
 func _restart_run() -> void:
+	get_tree().paused = false
 	vehicle.request_reset()
 	terrain.call("reset_run")
 	_fuel = 100.0
@@ -256,6 +328,7 @@ func _restart_run() -> void:
 	_coins_collected = 0
 	vehicle.set_fuel_depleted(false)
 	_elimination_timer = 0.0
+	_rollover_timer = 0.0
 	_eliminated = false
 	_status_panel.visible = false
 	_status_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -299,8 +372,9 @@ func _show_game_over(title: String) -> void:
 	if _eliminated:
 		return
 	_eliminated = true
+	get_tree().paused = false
 	_status_panel.visible = true
-	_restart_timer = 999999.0
+	_restart_timer = 4.0
 	_status_label.text = "%s\n\nDistance  %04d m\nCoins     %04d\nBest      %04d m\nFuel      %03d%%" % [
 		title,
 		int(maxf(-vehicle.global_position.z, 0.0)),
@@ -313,18 +387,20 @@ func _show_game_over(title: String) -> void:
 
 func _create_game_over_buttons() -> void:
 	for child in _status_panel.get_children():
-		if child is Button:
+		if child != _status_label:
 			child.queue_free()
 	var restart := Button.new()
 	restart.text = "RESTART"
-	restart.position = Vector2(90.0, 270.0)
-	restart.size = Vector2(150.0, 48.0)
+	restart.set_anchors_preset(Control.PRESET_CENTER)
+	restart.position = Vector2(-175.0, 90.0)
+	restart.size = Vector2(160.0, 52.0)
 	restart.pressed.connect(_restart_run)
 	_status_panel.add_child(restart)
 	var main_menu := Button.new()
 	main_menu.text = "MAIN MENU"
-	main_menu.position = Vector2(260.0, 270.0)
-	main_menu.size = Vector2(150.0, 48.0)
+	main_menu.set_anchors_preset(Control.PRESET_CENTER)
+	main_menu.position = Vector2(15.0, 90.0)
+	main_menu.size = Vector2(160.0, 52.0)
 	main_menu.pressed.connect(_return_to_main_menu)
 	_status_panel.add_child(main_menu)
 
@@ -359,9 +435,7 @@ func _on_coin_collected(value: int) -> void:
 
 
 func _on_stunt_completed(flips: int, airtime: float) -> void:
-	var airtime_bonus := maxi(int(floor(airtime * 4.0)), 1)
-	var flip_bonus := flips * 10
-	var stunt_reward := flip_bonus + airtime_bonus
+	var stunt_reward := flips * 500
 	_coins_collected += stunt_reward
 	profile.coins += stunt_reward
 	profile.save_profile()
