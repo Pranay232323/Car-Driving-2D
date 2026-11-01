@@ -29,6 +29,10 @@ var _touches: Dictionary = {}
 var _mouse_pressed_brake := false
 var _mouse_pressed_gas := false
 var _pause_rect := Rect2()
+var _stunt_banner_timer := 0.0
+var _stunt_banner_title := ""
+var _stunt_banner_coins := 0
+var _stunt_banner_combo := 1
 
 # Modern game UI palette
 const COLOR_GOLD := Color(1.0, 0.78, 0.16)
@@ -63,12 +67,21 @@ func show_coin_pickup(value: int) -> void:
 	queue_redraw()
 
 
+func show_stunt_banner(title: String, coins_awarded: int, combo: int) -> void:
+	_stunt_banner_title = title
+	_stunt_banner_coins = coins_awarded
+	_stunt_banner_combo = combo
+	_stunt_banner_timer = 2.4
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
 	_fuel_display = lerpf(_fuel_display, fuel, 1.0 - exp(-8.0 * delta))
 	_nitro_display = lerpf(_nitro_display, nitro, 1.0 - exp(-9.0 * delta))
 	_rpm_display = lerpf(_rpm_display, rpm, 1.0 - exp(-14.0 * delta))
 	_speed_display = lerpf(_speed_display, speed, 1.0 - exp(-12.0 * delta))
 	_fuel_flash = maxf(_fuel_flash - delta * 2.0, 0.0)
+	_stunt_banner_timer = maxf(_stunt_banner_timer - delta, 0.0)
 	if _coins_display != float(coins):
 		_coins_display = lerpf(_coins_display, float(coins), 1.0 - exp(-16.0 * delta))
 		_coin_flash = minf(_coin_flash + delta * 5.0, 1.0)
@@ -153,6 +166,8 @@ func _draw() -> void:
 	# 1. Top HUD
 	_draw_modern_top_left(Vector2(36.0, 28.0))
 	_draw_modern_top_right(viewport_size)
+	if _stunt_banner_timer > 0.0:
+		_draw_stunt_banner(viewport_size)
 
 	# 2. Bottom Dashboard cluster
 	_draw_modern_dashboard(viewport_size)
@@ -189,6 +204,42 @@ func _draw_modern_top_left(origin: Vector2) -> void:
 	_draw_golden_trophy(trophy_origin + Vector2(14.0, 13.0))
 	draw_string(_font, trophy_origin + Vector2(42.0, 19.0), "BEST", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COLOR_GOLD)
 	draw_string(_font, trophy_origin + Vector2(82.0, 21.0), "%04d m" % best_distance, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+
+
+func _draw_stunt_banner(viewport_size: Vector2) -> void:
+	var alpha := clampf(_stunt_banner_timer * 1.8, 0.0, 1.0)
+	var float_offset := (2.4 - _stunt_banner_timer) * 6.0
+	var banner_w := 380.0
+	var banner_h := 56.0
+	var banner_pos := Vector2(viewport_size.x * 0.5 - banner_w * 0.5, 38.0 - float_offset)
+
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.03, 0.06, 0.10, 0.88 * alpha)
+	var border_color := (COLOR_ORANGE if _stunt_banner_combo > 1 else COLOR_GOLD)
+	border_color.a = alpha
+	bg_style.border_color = border_color
+	bg_style.set_border_width_all(2)
+	bg_style.corner_radius_top_left = 16
+	bg_style.corner_radius_top_right = 16
+	bg_style.corner_radius_bottom_left = 16
+	bg_style.corner_radius_bottom_right = 16
+	draw_style_box(bg_style, Rect2(banner_pos, Vector2(banner_w, banner_h)))
+
+	var title_str := ""
+	if _stunt_banner_combo > 1:
+		title_str = "🔥 %dx %s!" % [_stunt_banner_combo, _stunt_banner_title]
+	else:
+		title_str = "⚡ %s!" % _stunt_banner_title
+
+	var text_color := (COLOR_ORANGE if _stunt_banner_combo > 1 else COLOR_GOLD_LIGHT)
+	text_color.a = alpha
+	draw_string(_font, banner_pos + Vector2(22.0, 36.0), title_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, text_color)
+
+	var coin_text := "+%d" % _stunt_banner_coins
+	var coin_color := COLOR_GOLD
+	coin_color.a = alpha
+	draw_string(_font, banner_pos + Vector2(banner_w - 110.0, 37.0), coin_text, HORIZONTAL_ALIGNMENT_RIGHT, -1, 22, coin_color)
+	_draw_embossed_coin(banner_pos + Vector2(banner_w - 24.0, 28.0))
 
 
 func _draw_subtle_capsule(pos: Vector2, sz: Vector2) -> void:

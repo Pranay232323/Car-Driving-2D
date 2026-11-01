@@ -40,6 +40,8 @@ var _reset_requested := false
 var air_time := 0.0
 var air_rotation := 0.0
 var completed_flips := 0
+var stunt_combo := 0
+var combo_timer := 0.0
 var nitro_amount := NITRO_CAPACITY
 var nitro_active := false
 var engine_rpm := 900.0
@@ -49,11 +51,15 @@ var touch_brake := 0.0
 var vehicle_torque_multiplier := 1.0
 var vehicle_grip_multiplier := 1.0
 var vehicle_nitro_multiplier := 1.0
+var world_grip_multiplier := 1.0
+var world_rolling_resistance := 0.0
+var world_air_pitch_multiplier := 1.0
 var vehicle_name := "Buggy"
 var _was_airborne := false
 var _stunt_air_time := 0.0
 var _stunt_rotation := 0.0
 
+signal stunt_performed(stunt_name: String, combo: int, coins: int)
 signal stunt_completed(flips: int, airtime: float)
 
 
@@ -70,6 +76,13 @@ func configure_vehicle(name: String, data: Dictionary) -> void:
 
 func set_stage_gravity(stage_name: String) -> void:
 	gravity_scale = 0.34 if stage_name == "Moon" else 0.72 if stage_name == "Mars" else 1.0
+
+
+func apply_world_physics(world_profile: Dictionary) -> void:
+	gravity_scale = float(world_profile.get("gravity", 1.0))
+	world_grip_multiplier = float(world_profile.get("grip", 1.0))
+	world_rolling_resistance = float(world_profile.get("rolling_resistance", 0.0))
+	world_air_pitch_multiplier = float(world_profile.get("air_pitch", 1.0))
 
 
 func request_reset() -> void:
@@ -169,6 +182,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		touch_brake = 0.0
 		air_time = 0.0
 		air_rotation = 0.0
+		stunt_combo = 0
+		combo_timer = 0.0
 		_was_airborne = false
 		_stunt_air_time = 0.0
 		_stunt_rotation = 0.0
@@ -196,7 +211,6 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var brake := maxf(Input.get_action_strength("vehicle_brake"), touch_brake)
 	var backflip_input := Input.get_action_strength("vehicle_pitch_forward")
 	var front_flip_input := Input.get_action_strength("vehicle_pitch_backward")
-	pitch_input = backflip_input - front_flip_input
 	nitro_active = Input.is_action_pressed("vehicle_nitro") and throttle > 0.05 and nitro_amount > 0.0
 	if nitro_active:
 		nitro_amount = maxf(nitro_amount - NITRO_DRAIN_RATE * delta, 0.0)
@@ -278,7 +292,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 		if in_contact:
 			var slip_speed := angular_speed * WHEEL_RADIUS - longitudinal_speed
-			var traction_limit := contact_force * TIRE_FRICTION * vehicle_grip_multiplier
+			var traction_limit := contact_force * TIRE_FRICTION * vehicle_grip_multiplier * world_grip_multiplier
 			tire_force = clampf(slip_speed * TIRE_SLIP_STIFFNESS, -traction_limit, traction_limit)
 			var max_brake_force := braking_torque / WHEEL_RADIUS
 			var brake_force := clampf(-longitudinal_speed * 1800.0, -max_brake_force, max_brake_force)
@@ -303,36 +317,83 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			wheel["angular_speed"] = 0.0
 		wheel["spin"] = float(wheel["spin"]) + angular_speed * delta
 
+	# Rolling resistance drag
+	if grounded_wheels > 0 and world_rolling_resistance > 0.0:
+		var fwd_vel := state.linear_velocity.dot(forward)
+		var rolling_drag := -forward * (fwd_vel * world_rolling_resistance * 420.0)
+		state.apply_central_force(rolling_drag)
+
 	var driven_wheel_speed := absf(float(_wheels[0]["angular_speed"]))
 	var target_rpm := clampf(900.0 + driven_wheel_speed * 60.0 / TAU * 4.2 + absf(throttle) * 950.0, 900.0, 8000.0)
 	engine_rpm = lerpf(engine_rpm, target_rpm, 1.0 - exp(-10.0 * delta))
 
+	# Airborne control & aerodynamics
 	if grounded_wheels == 0:
+		# Gas and Brake act as airborne pitch controls (Classic Hill Climb Racing physics!)
+		var pedal_pitch := throttle - brake
+		pitch_input = clampf((backflip_input - front_flip_input) + pedal_pitch, -1.0, 1.0)
+
 		air_time += delta
 		_stunt_air_time += delta
 		_stunt_rotation += state.angular_velocity.x * delta
 		air_rotation = _stunt_rotation
 		_was_airborne = true
+
+		# Real-time airborne flip & backflip detection with combo multiplier
+		if _stunt_rotation >= TAU:
+			_stunt_rotation -= TAU
+			completed_flips += 1
+			combo_timer = 3.5
+			stunt_combo += 1
+			var reward := 500 * stunt_combo
+			stunt_performed.emit("BACKFLIP", stunt_combo, reward)
+		elif _stunt_rotation <= -TAU:
+			_stunt_rotation += TAU
+			completed_flips += 1
+			combo_timer = 3.5
+			stunt_combo += 1
+			var reward := 500 * stunt_combo
+			stunt_performed.emit("FRONT FLIP", stunt_combo, reward)
+
 		var pitch_speed := state.angular_velocity.x
 		var air_control := pitch_input
 		if not is_zero_approx(air_control):
 			var control_limit := MAX_AIR_PITCH_SPEED if signf(air_control) == signf(pitch_speed) else MAX_AIR_PITCH_SPEED * 1.35
 			if absf(pitch_speed) < control_limit:
-				state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE)
+				state.apply_torque(Vector3.RIGHT * air_control * AIR_PITCH_TORQUE * world_air_pitch_multiplier)
 		else:
 			state.apply_torque(Vector3.RIGHT * -pitch_speed * AIR_PITCH_STABILIZATION)
+
+		# Aerodynamic air resistance opposing velocity vector
+		var speed_sq := state.linear_velocity.length_squared()
+		if speed_sq > 0.5:
+			var drag_dir := -state.linear_velocity.normalized()
+			var drag_force := drag_dir * (speed_sq * 0.075)
+			state.apply_central_force(drag_force)
+
 	elif grounded_wheels == 1:
+		pitch_input = backflip_input - front_flip_input
 		state.apply_torque(Vector3.RIGHT * pitch_input * AIR_PITCH_TORQUE * 0.12)
-	if grounded_wheels > 0 and _was_airborne:
-		var flips := int(floor(absf(_stunt_rotation) / TAU))
-		if flips > 0:
-			completed_flips += flips
-			stunt_completed.emit(flips, _stunt_air_time)
-		air_time = 0.0
-		air_rotation = 0.0
-		_stunt_air_time = 0.0
-		_stunt_rotation = 0.0
-		_was_airborne = false
+	else:
+		pitch_input = backflip_input - front_flip_input
+
+	# Safe landing & combo timer decay
+	if grounded_wheels > 0:
+		if combo_timer > 0.0:
+			combo_timer -= delta
+			if combo_timer <= 0.0:
+				stunt_combo = 0
+		if _was_airborne:
+			var flips := int(floor(absf(_stunt_rotation) / TAU))
+			if flips > 0:
+				completed_flips += flips
+				stunt_completed.emit(flips, _stunt_air_time)
+			air_time = 0.0
+			air_rotation = 0.0
+			_stunt_air_time = 0.0
+			_stunt_rotation = 0.0
+			_was_airborne = false
+
 	if grounded_wheels < 2:
 		var angular_velocity := state.angular_velocity
 		angular_velocity.x = clampf(angular_velocity.x, -MAX_AIR_PITCH_SPEED, MAX_AIR_PITCH_SPEED)

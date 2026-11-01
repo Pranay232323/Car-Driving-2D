@@ -30,8 +30,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_button_style = _style(Color(0.08, 0.1, 0.12, 0.96), Color(0.25, 0.3, 0.32, 1.0), 8)
-	_hover_style = _style(Color(0.22, 0.13, 0.045, 0.98), ACCENT, 8)
+	_button_style = _style(Color(0.08, 0.1, 0.13, 0.96), Color(0.24, 0.32, 0.38, 1.0), 10)
+	_hover_style = _style(Color(0.25, 0.14, 0.04, 0.98), ACCENT, 10)
 	_build_home()
 	modulate.a = 0.0
 	var tween := create_tween()
@@ -55,16 +55,16 @@ func _input(event: InputEvent) -> void:
 
 
 func _draw() -> void:
-	var size := get_viewport_rect().size
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.015, 0.022, 0.03, 0.98))
+	var sz := get_viewport_rect().size
+	draw_rect(Rect2(Vector2.ZERO, sz), Color(0.015, 0.022, 0.03, 0.98))
 	for index in range(7):
-		var y := size.y * 0.26 + index * size.y * 0.09
+		var y := sz.y * 0.26 + index * sz.y * 0.09
 		draw_rect(
-			Rect2(0, y, size.x, maxf(size.y - y, 0.0)),
+			Rect2(0, y, sz.x, maxf(sz.y - y, 0.0)),
 			Color(0.06 + index * 0.008, 0.09 + index * 0.008, 0.1 + index * 0.01, 1.0)
 		)
-	draw_circle(Vector2(size.x * 0.78, size.y * 0.22), size.y * 0.13, Color(1.0, 0.47, 0.12, 0.12))
-	draw_circle(Vector2(size.x * 0.78, size.y * 0.22), size.y * 0.075, Color(1.0, 0.68, 0.26, 0.11))
+	draw_circle(Vector2(sz.x * 0.78, sz.y * 0.22), sz.y * 0.13, Color(1.0, 0.47, 0.12, 0.12))
+	draw_circle(Vector2(sz.x * 0.78, sz.y * 0.22), sz.y * 0.075, Color(1.0, 0.68, 0.26, 0.11))
 
 
 func _build_home() -> void:
@@ -137,30 +137,53 @@ func _build_home_panel() -> Control:
 func _build_garage() -> void:
 	_menu_mode = "garage"
 	_clear_children()
-	var panel := _make_subpanel("VEHICLE & STAGE SELECT")
-	var content := panel.get_node("Content") as VBoxContainer
-	content.add_child(_label("CHOOSE YOUR MACHINE", 15, ACCENT))
+	var panel := _make_subpanel("GARAGE & FLEET")
+	var content := panel.get_node("Scroll/Content") as VBoxContainer
+	content.add_child(_label("CHOOSE YOUR MACHINE (7 VEHICLES)", 15, ACCENT))
+
 	for name in profile.VEHICLES:
 		var data: Dictionary = profile.VEHICLES[name]
 		var unlocked: bool = profile.is_vehicle_unlocked(name)
-		var text := "%s    TORQUE %.1f   GRIP %.1f" % [name.to_upper(), data["torque"], data["grip"]]
-		if not unlocked:
-			text += "    ◈ %d" % int(data["price"])
+		var subtitle: String = data.get("subtitle", "Offroad Rig")
+		var is_selected: bool = (name == profile.selected_vehicle)
+		var status_badge := "[ACTIVE RIG]" if is_selected else ("[READY]" if unlocked else "[LOCKED - ◈ %d COINS]" % int(data.get("price", 0)))
+
+		var t_val: float = float(data.get("torque", 1.0))
+		var g_val: float = float(data.get("grip", 1.0))
+		var n_val: float = float(data.get("nitro", 1.0))
+
+		var text := "%s  —  %s   %s\n  TORQUE: %.2fx   |   TIRE GRIP: %.2fx   |   NITRO BOOST: %.2fx" % [
+			name.to_upper(), subtitle, status_badge, t_val, g_val, n_val
+		]
 		var button := _button(text, Callable(self, "_select_vehicle").bind(name))
-		if name == profile.selected_vehicle:
+		if is_selected:
 			button.add_theme_stylebox_override("normal", _hover_style)
 		content.add_child(button)
-	content.add_child(_label("CHOOSE A WORLD", 15, ACCENT))
+
+	content.add_child(_label("EXPEDITION WORLDS (6 UNIQUE MAPS)", 15, ACCENT))
 	for name in profile.STAGES:
 		var stage_data: Dictionary = profile.STAGES[name]
 		var unlocked: bool = profile.is_stage_unlocked(name)
-		var text := "%s" % stage_data["label"]
-		if not unlocked:
-			text += "    ◈ %d" % int(stage_data["price"])
+		var wprof: Dictionary = DifficultyManager.WORLD_PROFILES.get(name, {})
+		var diff_badge: String = wprof.get("difficulty_label", "MODERATE")
+		var reward_mult: float = wprof.get("reward_multiplier", 1.0)
+		var grav: float = wprof.get("gravity", 1.0)
+		var grip: float = wprof.get("grip", 1.0)
+		var desc: String = wprof.get("description", "")
+		var terrain_info: String = wprof.get("terrain_info", "")
+		var hazards_info: String = wprof.get("hazards_info", "")
+		var rec_vehicle: String = wprof.get("recommended_vehicle", "Any")
+
+		var status_str := "   [ACTIVE MAP]" if name == profile.selected_stage else ("   [UNLOCKED]" if unlocked else "   ◈ %d COINS" % int(stage_data.get("price", 0)))
+		var text := "%s  •  %s  •  REWARD %.1fx%s\n  %s\n  Terrain: %s\n  Hazards: %s\n  Physics: Gravity %.2fg | Grip %.2fx  •  Recommended: %s" % [
+			stage_data.get("label", name).to_upper(), diff_badge, reward_mult, status_str,
+			desc, terrain_info, hazards_info, grav, grip, rec_vehicle
+		]
 		var button := _button(text, Callable(self, "_select_stage").bind(name))
 		if name == profile.selected_stage:
 			button.add_theme_stylebox_override("normal", _hover_style)
 		content.add_child(button)
+
 	content.add_child(_button("BACK TO COMMAND", _build_home))
 
 
@@ -168,7 +191,7 @@ func _build_settings() -> void:
 	_menu_mode = "settings"
 	_clear_children()
 	var panel := _make_subpanel("SETTINGS")
-	var content := panel.get_node("Content") as VBoxContainer
+	var content := panel.get_node("Scroll/Content") as VBoxContainer
 	_add_slider(content, "MASTER VOLUME", profile.master_volume, "_set_master")
 	_add_slider(content, "MUSIC VOLUME", profile.music_volume, "_set_music")
 	_add_slider(content, "SFX VOLUME", profile.effects_volume, "_set_effects")
@@ -186,20 +209,27 @@ func _build_settings() -> void:
 func _make_subpanel(title: String) -> Panel:
 	var panel := Panel.new()
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.position = Vector2(-310, -285)
-	panel.size = Vector2(620, 570)
-	panel.add_theme_stylebox_override("panel", _style(PANEL, Color(0.25, 0.32, 0.35, 1), 14))
+	panel.position = Vector2(-360, -315)
+	panel.size = Vector2(720, 630)
+	panel.add_theme_stylebox_override("panel", _style(PANEL, Color(0.25, 0.35, 0.42, 1), 14))
 	add_child(panel)
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "Scroll"
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(scroll)
+
 	var content := VBoxContainer.new()
 	content.name = "Content"
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 10)
 	content.add_theme_constant_override("margin_left", 32)
 	content.add_theme_constant_override("margin_right", 32)
-	content.add_theme_constant_override("margin_top", 28)
-	content.add_theme_constant_override("margin_bottom", 28)
-	panel.add_child(content)
-	content.add_child(_label(title, 28, GOLD))
+	content.add_theme_constant_override("margin_top", 24)
+	content.add_theme_constant_override("margin_bottom", 24)
+	scroll.add_child(content)
+	content.add_child(_label(title, 26, GOLD))
 	content.add_child(HSeparator.new())
 	_message = _label("", 12, Color(1.0, 0.54, 0.3))
 	content.add_child(_message)
@@ -308,7 +338,7 @@ func _button(text: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_font_size_override("font_size", 15)
 	button.add_theme_color_override("font_color", Color(0.92, 0.96, 0.96))
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_stylebox_override("normal", _button_style)

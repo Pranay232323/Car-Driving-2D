@@ -56,6 +56,7 @@ func _ready() -> void:
 	terrain.connect("coin_collected", Callable(self, "_on_coin_collected"))
 	terrain.connect("fuel_collected", Callable(self, "_on_fuel_collected"))
 	vehicle.stunt_completed.connect(_on_stunt_completed)
+	vehicle.stunt_performed.connect(_on_stunt_performed)
 	_best_distance = profile.best_distance
 	_apply_profile()
 
@@ -80,8 +81,9 @@ func _create_main_menu(overlay: CanvasLayer) -> void:
 func _apply_profile() -> void:
 	var vehicle_data: Dictionary = profile.VEHICLES.get(profile.selected_vehicle, profile.VEHICLES["Buggy"])
 	vehicle.configure_vehicle(profile.selected_vehicle, vehicle_data)
-	vehicle.set_stage_gravity(profile.selected_stage)
 	terrain.call("set_stage_theme", profile.selected_stage)
+	var world_config: Dictionary = terrain.get_world_config()
+	vehicle.apply_world_physics(world_config)
 	environment_visuals.set_stage_theme(profile.selected_stage)
 	_apply_world_sky(profile.selected_stage)
 
@@ -91,28 +93,95 @@ func _apply_world_sky(stage_name: String) -> void:
 	if environment == null:
 		return
 	var sky := environment.sky
-	var sky_material: ProceduralSkyMaterial = null
+	var sky_mat: ProceduralSkyMaterial = null
 	if sky:
-		sky_material = sky.sky_material as ProceduralSkyMaterial
-	if stage_name == "Moon":
-		environment.background_mode = Environment.BG_COLOR
-		environment.background_color = Color(0.005, 0.008, 0.03)
-	elif stage_name == "Highway":
-		environment.background_mode = Environment.BG_COLOR
-		environment.background_color = Color(0.18, 0.48, 0.78)
-	elif stage_name == "Desert":
-		environment.background_mode = Environment.BG_COLOR
-		environment.background_color = Color(0.82, 0.45, 0.2)
-	elif stage_name == "Mars":
-		environment.background_mode = Environment.BG_COLOR
-		environment.background_color = Color(0.26, 0.055, 0.025)
-	elif stage_name == "Snow":
-		environment.background_mode = Environment.BG_COLOR
-		environment.background_color = Color(0.48, 0.7, 0.86)
-	else:
-		environment.background_mode = Environment.BG_SKY
-	if sky_material:
-		sky_material.sky_top_color = Color(0.01, 0.015, 0.06) if stage_name == "Moon" else sky_material.sky_top_color
+		sky_mat = sky.sky_material as ProceduralSkyMaterial
+	var sun: DirectionalLight3D = get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+
+	match stage_name:
+		"Desert":
+			environment.background_mode = Environment.BG_SKY
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.28, 0.54, 0.86)
+				sky_mat.sky_horizon_color = Color(0.92, 0.72, 0.46)
+				sky_mat.ground_bottom_color = Color(0.68, 0.42, 0.18)
+				sky_mat.ground_horizon_color = Color(0.85, 0.60, 0.35)
+			environment.ambient_light_energy = 1.2
+			environment.fog_enabled = true
+			environment.fog_light_color = Color(0.88, 0.72, 0.48)
+			environment.fog_density = 0.0032
+			if sun:
+				sun.light_color = Color(1.0, 0.95, 0.84)
+				sun.light_energy = 1.5
+
+		"Highway":
+			environment.background_mode = Environment.BG_SKY
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.16, 0.32, 0.62)
+				sky_mat.sky_horizon_color = Color(0.80, 0.60, 0.48)
+				sky_mat.ground_bottom_color = Color(0.18, 0.20, 0.25)
+				sky_mat.ground_horizon_color = Color(0.48, 0.45, 0.44)
+			environment.ambient_light_energy = 1.1
+			environment.fog_enabled = true
+			environment.fog_light_color = Color(0.65, 0.60, 0.68)
+			environment.fog_density = 0.0026
+			if sun:
+				sun.light_color = Color(1.0, 0.88, 0.72)
+				sun.light_energy = 1.3
+
+		"Snow":
+			environment.background_mode = Environment.BG_SKY
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.32, 0.50, 0.75)
+				sky_mat.sky_horizon_color = Color(0.82, 0.90, 0.98)
+				sky_mat.ground_bottom_color = Color(0.62, 0.78, 0.90)
+				sky_mat.ground_horizon_color = Color(0.86, 0.94, 1.0)
+			environment.ambient_light_energy = 1.35
+			environment.fog_enabled = true
+			environment.fog_light_color = Color(0.82, 0.90, 0.98)
+			environment.fog_density = 0.0040
+			if sun:
+				sun.light_color = Color(0.92, 0.96, 1.0)
+				sun.light_energy = 1.45
+
+		"Mars":
+			environment.background_mode = Environment.BG_SKY
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.38, 0.15, 0.08)
+				sky_mat.sky_horizon_color = Color(0.72, 0.35, 0.18)
+				sky_mat.ground_bottom_color = Color(0.42, 0.14, 0.06)
+				sky_mat.ground_horizon_color = Color(0.65, 0.24, 0.12)
+			environment.ambient_light_energy = 1.15
+			environment.fog_enabled = true
+			environment.fog_light_color = Color(0.65, 0.28, 0.15)
+			environment.fog_density = 0.0035
+			if sun:
+				sun.light_color = Color(1.0, 0.76, 0.60)
+				sun.light_energy = 1.35
+
+		"Moon":
+			environment.background_mode = Environment.BG_COLOR
+			environment.background_color = Color(0.005, 0.007, 0.015)
+			environment.ambient_light_energy = 0.45
+			environment.fog_enabled = false
+			if sun:
+				sun.light_color = Color(1.0, 1.0, 1.0)
+				sun.light_energy = 1.65
+
+		_: # Highlands
+			environment.background_mode = Environment.BG_SKY
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.12, 0.46, 0.88)
+				sky_mat.sky_horizon_color = Color(0.56, 0.82, 0.98)
+				sky_mat.ground_bottom_color = Color(0.25, 0.42, 0.22)
+				sky_mat.ground_horizon_color = Color(0.65, 0.82, 0.68)
+			environment.ambient_light_energy = 1.15
+			environment.fog_enabled = true
+			environment.fog_light_color = Color(0.70, 0.84, 0.94)
+			environment.fog_density = 0.0022
+			if sun:
+				sun.light_color = Color(1.0, 0.96, 0.88)
+				sun.light_energy = 1.35
 
 
 func _create_status_hud() -> void:
@@ -201,40 +270,6 @@ func _create_game_hud() -> void:
 	_hud_panel.visible = false
 	overlay.add_child(_hud_panel)
 	return
-	_hud_panel.name = "GameHudPanel"
-	_hud_panel.position = Vector2(24.0, 22.0)
-	_hud_panel.size = Vector2(270.0, 132.0)
-	_hud_panel.color = Color(0.025, 0.04, 0.055, 0.78)
-	overlay.add_child(_hud_panel)
-	_distance_label = Label.new()
-	_distance_label.position = Vector2(18.0, 8.0)
-	_distance_label.add_theme_font_size_override("font_size", 24)
-	_distance_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.42))
-	_hud_panel.add_child(_distance_label)
-	_stage_label = Label.new()
-	_stage_label.position = Vector2(18.0, 46.0)
-	_stage_label.add_theme_font_size_override("font_size", 13)
-	_stage_label.add_theme_color_override("font_color", Color(0.78, 0.88, 0.9))
-	_hud_panel.add_child(_stage_label)
-	_coin_label = Label.new()
-	_coin_label.position = Vector2(18.0, 61.0)
-	_coin_label.add_theme_font_size_override("font_size", 14)
-	_coin_label.add_theme_color_override("font_color", Color(1.0, 0.72, 0.16))
-	_hud_panel.add_child(_coin_label)
-	_nitro_label = Label.new()
-	_nitro_label.position = Vector2(18.0, 79.0)
-	_nitro_label.add_theme_font_size_override("font_size", 13)
-	_nitro_label.add_theme_color_override("font_color", Color(0.35, 0.85, 1.0))
-	_hud_panel.add_child(_nitro_label)
-	_fuel_label = Label.new()
-	_fuel_label.position = Vector2(18.0, 98.0)
-	_fuel_label.add_theme_font_size_override("font_size", 13)
-	_hud_panel.add_child(_fuel_label)
-	_fuel_bar = ColorRect.new()
-	_fuel_bar.position = Vector2(122.0, 101.0)
-	_fuel_bar.size = Vector2(125.0, 10.0)
-	_fuel_bar.color = Color(0.2, 0.82, 0.28)
-	_hud_panel.add_child(_fuel_bar)
 
 
 func _physics_process(delta: float) -> void:
@@ -252,7 +287,6 @@ func _physics_process(delta: float) -> void:
 	var speed := absf(vehicle.linear_velocity.dot(-vehicle.global_transform.basis.z))
 	var target_camera_size := clampf(10.0 + speed * 0.05, 10.0, 11.5)
 	side_camera.size = lerpf(side_camera.size, target_camera_size, 1.0 - exp(-4.0 * delta))
-	var profile: Dictionary = terrain.call("get_difficulty_profile")
 	_game_hud.set("distance", int(maxf(-vehicle.global_position.z, 0.0)))
 	_game_hud.set("best_distance", int(_best_distance))
 	_game_hud.set("coins", _coins_collected)
@@ -302,21 +336,37 @@ func _check_elimination(delta: float) -> void:
 	_best_distance = maxf(_best_distance, distance)
 	if distance > profile.best_distance:
 		profile.best_distance = distance
+
+	# 1. Fall off terrain abyss
 	var fallen: bool = vehicle.global_position.y < -5.5
 	if fallen:
 		_elimination_timer += delta
 	else:
 		_elimination_timer = 0.0
+
+	# 2. Driver neck snap & rollover crash on ground
 	var up_direction := vehicle.global_transform.basis.y.normalized()
-	var upside_down := up_direction.dot(Vector3.UP) < -0.58
-	var nearly_stopped := vehicle.linear_velocity.length() < 1.4 and absf(vehicle.angular_velocity.x) < 1.5
-	var has_ground_contact := bool(vehicle._wheels[0]["in_contact"]) or bool(vehicle._wheels[1]["in_contact"])
-	if upside_down and nearly_stopped and has_ground_contact:
+	var is_inverted: bool = up_direction.dot(Vector3.UP) < 0.25
+
+	# Check Driver Head contact with terrain:
+	var driver_head_pos := vehicle.global_position + vehicle.global_transform.basis.y * 1.05
+	var terrain_h_head: float = terrain.call("get_height", driver_head_pos.z)
+	var head_ground_hit: bool = driver_head_pos.y <= (terrain_h_head + 0.35)
+
+	# Check Roof / Cabin contact with terrain while inverted:
+	var terrain_h_center: float = terrain.call("get_height", vehicle.global_position.z)
+	var roof_ground_hit: bool = is_inverted and (vehicle.global_position.y <= terrain_h_center + 0.65)
+
+	var is_crashing: bool = head_ground_hit or roof_ground_hit
+	if is_crashing:
 		_rollover_timer += delta
 	else:
-		_rollover_timer = maxf(_rollover_timer - delta * 2.0, 0.0)
-	if _elimination_timer > 0.7 or _rollover_timer > 1.25:
-		_show_game_over("RUN OVER")
+		_rollover_timer = maxf(_rollover_timer - delta * 3.0, 0.0)
+
+	if _elimination_timer > 0.6:
+		_show_game_over("OUT OF BOUNDS")
+	elif _rollover_timer > 0.16:
+		_show_game_over("DRIVER DOWN!\nNECK FLIP")
 
 
 func _restart_run() -> void:
@@ -339,7 +389,6 @@ func _restart_run() -> void:
 func _on_play_requested() -> void:
 	_main_menu.visible = false
 	get_tree().paused = false
-
 
 
 func _update_fuel(delta: float) -> void:
@@ -434,10 +483,22 @@ func _on_coin_collected(value: int) -> void:
 		_coin_label.text = "◆  %04d COINS  +%d" % [_coins_collected, value]
 
 
-func _on_stunt_completed(flips: int, airtime: float) -> void:
+func _on_stunt_completed(flips: int, _airtime: float) -> void:
 	var stunt_reward := flips * 500
 	_coins_collected += stunt_reward
 	profile.coins += stunt_reward
 	profile.save_profile()
 	if is_instance_valid(_coin_label):
 		_coin_label.text = "◆  %04d COINS  STUNT +%d" % [_coins_collected, stunt_reward]
+
+
+func _on_stunt_performed(stunt_name: String, combo: int, reward: int) -> void:
+	_coins_collected += reward
+	profile.coins += reward
+	profile.save_profile()
+	if is_instance_valid(_game_hud) and _game_hud.has_method("show_stunt_banner"):
+		_game_hud.call("show_stunt_banner", stunt_name, reward, combo)
+	if is_instance_valid(_game_hud) and _game_hud.has_method("show_coin_pickup"):
+		_game_hud.call("show_coin_pickup", reward)
+	if is_instance_valid(_coin_label):
+		_coin_label.text = "◆  %04d COINS  %s +%d" % [_coins_collected, stunt_name, reward]
