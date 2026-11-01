@@ -30,14 +30,14 @@ func _ready() -> void:
 	_terrain = get_parent().get_node("ProceduralTerrain")
 	_create_materials()
 	_distant_layer = _create_ridge_layer("DistantMountains", -10.0, 0.08, [
-		Color(0.58, 0.70, 0.68),
-		Color(0.48, 0.63, 0.63),
-		Color(0.39, 0.55, 0.57),
+		Color(0.46, 0.60, 0.72),
+		Color(0.38, 0.52, 0.64),
+		Color(0.30, 0.44, 0.56),
 	])
 	_middle_layer = _create_ridge_layer("MiddleHills", -6.0, 0.22, [
-		Color(0.55, 0.68, 0.47),
-		Color(0.44, 0.59, 0.39),
-		Color(0.35, 0.51, 0.33),
+		Color(0.25, 0.52, 0.26),
+		Color(0.20, 0.44, 0.22),
+		Color(0.16, 0.38, 0.18),
 	])
 	_near_layer = Node3D.new()
 	_near_layer.name = "NearBackgroundVegetation"
@@ -243,7 +243,7 @@ func _stage_colors(stage_name: String) -> Array[Color]:
 		return [Color(0.3, 0.08, 0.04), Color(0.5, 0.14, 0.06), Color(0.52, 0.15, 0.07), Color(0.46, 0.12, 0.04), Color(0.25, 0.08, 0.05)]
 	if stage_name == "Moon":
 		return [Color(0.015, 0.02, 0.08), Color(0.03, 0.05, 0.16), Color(0.12, 0.14, 0.2), Color(0.16, 0.18, 0.24), Color(0.2, 0.21, 0.25)]
-	return [Color(0.58, 0.70, 0.68), Color(0.44, 0.59, 0.39), Color(0.22, 0.4, 0.16), Color(0.34, 0.53, 0.2), Color(0.38, 0.39, 0.34)]
+	return [Color(0.46, 0.60, 0.72), Color(0.20, 0.44, 0.22), Color(0.22, 0.4, 0.16), Color(0.34, 0.53, 0.2), Color(0.38, 0.39, 0.34)]
 
 
 func _update_layers(force: bool) -> void:
@@ -298,7 +298,7 @@ func _create_ridge_mesh(
 	var normals := PackedVector3Array()
 	var indices := PackedInt32Array()
 	var baseline := -1.2 + float(band) * 0.28
-	var peak_height := 4.8 - float(band) * 0.45
+	var peak_height := 7.2 - float(band) * 0.65
 	for index in range(RIDGE_SAMPLES):
 		var t := float(index) / float(RIDGE_SAMPLES - 1)
 		var z := lerpf(-RIDGE_LENGTH * 0.5, RIDGE_LENGTH * 0.5, t)
@@ -401,9 +401,9 @@ func _add_rock(parent: Node3D, rng: RandomNumberGenerator, z: float, height: flo
 
 
 func _create_materials() -> void:
-	_tree_material = _material(Color(0.22, 0.40, 0.16), 0.98)
+	_tree_material = _material(Color(0.20, 0.46, 0.18), 0.98)
 	_trunk_material = _material(Color(0.30, 0.20, 0.11), 1.0)
-	_bush_material = _material(Color(0.34, 0.53, 0.20), 0.98)
+	_bush_material = _material(Color(0.44, 0.70, 0.18), 0.98)
 	_rock_material = _material(Color(0.38, 0.39, 0.34), 1.0)
 
 

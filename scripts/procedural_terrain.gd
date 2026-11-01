@@ -452,9 +452,9 @@ func _add_decorations(parent: Node3D, chunk_index: int, z_start: float, z_end: f
 
 func _create_materials() -> void:
 	for color: Color in [
-		Color(0.42, 0.58, 0.22),
-		Color(0.47, 0.63, 0.25),
-		Color(0.38, 0.53, 0.2),
+		Color(0.50, 0.74, 0.20),
+		Color(0.56, 0.78, 0.24),
+		Color(0.44, 0.68, 0.17),
 	]:
 		var material := StandardMaterial3D.new()
 		material.albedo_color = color
@@ -462,19 +462,19 @@ func _create_materials() -> void:
 		material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		_terrain_materials.append(material)
 	_terrain_side_material = StandardMaterial3D.new()
-	_terrain_side_material.albedo_color = Color(0.16, 0.13, 0.1)
+	_terrain_side_material.albedo_color = Color(0.38, 0.25, 0.17)
 	_terrain_side_material.roughness = 1.0
 	_terrain_side_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_grass_edge_material = StandardMaterial3D.new()
-	_grass_edge_material.albedo_color = Color(0.25, 0.42, 0.12)
+	_grass_edge_material.albedo_color = Color(0.52, 0.76, 0.18)
 	_grass_edge_material.roughness = 1.0
 	_grass_edge_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_grass_material = StandardMaterial3D.new()
-	_grass_material.albedo_color = Color(0.20, 0.39, 0.08)
+	_grass_material.albedo_color = Color(0.48, 0.72, 0.15)
 	_grass_material.roughness = 1.0
 
 	_rock_material = StandardMaterial3D.new()
-	_rock_material.albedo_color = Color(0.25, 0.27, 0.24)
+	_rock_material.albedo_color = Color(0.42, 0.42, 0.38)
 	_rock_material.roughness = 1.0
 	_rock_mesh = SphereMesh.new()
 	_rock_mesh.radial_segments = 8
@@ -487,13 +487,13 @@ func _apply_stage_materials() -> void:
 	if _terrain_materials.is_empty():
 		return
 	var top_colors: Array[Color] = [
-		Color(0.42, 0.58, 0.22),
-		Color(0.47, 0.63, 0.25),
-		Color(0.38, 0.53, 0.2),
+		Color(0.50, 0.74, 0.20),
+		Color(0.56, 0.78, 0.24),
+		Color(0.44, 0.68, 0.17),
 	]
-	var side_color := Color(0.16, 0.13, 0.1)
-	var edge_color := Color(0.25, 0.42, 0.12)
-	var grass_color := Color(0.20, 0.39, 0.08)
+	var side_color := Color(0.38, 0.25, 0.17)
+	var edge_color := Color(0.52, 0.76, 0.18)
+	var grass_color := Color(0.48, 0.72, 0.15)
 	if _stage_theme == "Desert":
 		top_colors = [Color(0.72, 0.38, 0.12), Color(0.84, 0.5, 0.18), Color(0.61, 0.28, 0.08)]
 		side_color = Color(0.26, 0.12, 0.06)

@@ -6,12 +6,12 @@
 [ext_resource type="Script" path="res://scripts/environment_visuals.gd" id="4_environment"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.08, 0.36, 0.78, 1)
-sky_horizon_color = Color(0.48, 0.78, 0.95, 1)
-ground_bottom_color = Color(0.30, 0.48, 0.33, 1)
-ground_horizon_color = Color(0.72, 0.82, 0.70, 1)
-sun_angle_max = 18.0
-sun_curve = 0.08
+sky_top_color = Color(0.12, 0.46, 0.88, 1)
+sky_horizon_color = Color(0.56, 0.82, 0.98, 1)
+ground_bottom_color = Color(0.25, 0.42, 0.22, 1)
+ground_horizon_color = Color(0.65, 0.82, 0.68, 1)
+sun_angle_max = 24.0
+sun_curve = 0.06
 
 [sub_resource type="Sky" id="Sky_world"]
 sky_material = SubResource("ProceduralSkyMaterial_sky")
@@ -20,18 +20,18 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_world")
 ambient_light_source = 3
-ambient_light_color = Color(0.72, 0.84, 0.92, 1)
+ambient_light_color = Color(0.78, 0.88, 0.96, 1)
 ambient_light_energy = 1.15
 reflected_light_source = 2
 ssao_enabled = true
 ssao_radius = 2.0
-ssao_intensity = 1.4
+ssao_intensity = 1.2
 tonemap_mode = 2
-tonemap_exposure = 1.15
+tonemap_exposure = 1.18
 fog_enabled = true
-fog_light_color = Color(0.72, 0.84, 0.88, 1)
-fog_light_energy = 0.32
-fog_density = 0.004
+fog_light_color = Color(0.70, 0.84, 0.94, 1)
+fog_light_energy = 0.22
+fog_density = 0.0025
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
 size = Vector2(90, 45)
@@ -44,10 +44,10 @@ show_debug_overlay = false
 environment = SubResource("Environment_world")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-35, -25, 0)
+rotation_degrees = Vector3(-35, -28, 0)
 shadow_enabled = true
-light_color = Color(1, 0.94, 0.78, 1)
-light_energy = 1.25
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.35
 
 [node name="ProceduralTerrain" type="Node3D" parent="."]
 script = ExtResource("3_terrain")
