@@ -71,6 +71,8 @@ func configure_vehicle(name: String, data: Dictionary) -> void:
 	nitro_amount = NITRO_CAPACITY * vehicle_nitro_multiplier
 	var visuals := get_node_or_null("VehicleVisuals") as VehicleVisuals
 	if visuals:
+		if not visuals.is_node_ready():
+			await visuals.ready
 		visuals.set_vehicle_variant(name, data.get("color", Color(1.0, 0.18, 0.015)))
 
 

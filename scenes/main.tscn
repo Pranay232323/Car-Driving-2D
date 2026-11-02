@@ -1,9 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://chy3clrtvbpx6"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://dfphiqo3s2jw7" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/vehicle/placeholder_vehicle.tscn" id="2_vehicle"]
-[ext_resource type="Script" path="res://scripts/procedural_terrain.gd" id="3_terrain"]
-[ext_resource type="Script" path="res://scripts/environment_visuals.gd" id="4_environment"]
+[ext_resource type="Script" uid="uid://b1dkyf2lmky4i" path="res://scripts/procedural_terrain.gd" id="3_terrain"]
+[ext_resource type="Script" uid="uid://ct575uxpap4bs" path="res://scripts/environment_visuals.gd" id="4_environment"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.12, 0.46, 0.88, 1)
@@ -23,42 +23,40 @@ ambient_light_source = 3
 ambient_light_color = Color(0.78, 0.88, 0.96, 1)
 ambient_light_energy = 1.15
 reflected_light_source = 2
+tonemap_mode = 2
+tonemap_exposure = 1.18
 ssao_enabled = true
 ssao_radius = 2.0
 ssao_intensity = 1.2
-tonemap_mode = 2
-tonemap_exposure = 1.18
 fog_enabled = true
-fog_light_color = Color(0.70, 0.84, 0.94, 1)
+fog_light_color = Color(0.7, 0.84, 0.94, 1)
 fog_light_energy = 0.22
 fog_density = 0.0025
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(90, 45)
-
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=519392832]
 script = ExtResource("1_main")
-show_debug_overlay = false
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1868827045]
 environment = SubResource("Environment_world")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-35, -28, 0)
-shadow_enabled = true
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=881867462]
+transform = Transform3D(0.88294756, 0.26927784, -0.3845686, 0, 0.81915206, 0.57357645, 0.46947157, -0.50643796, 0.72326833, 0, 0, 0)
+visible = false
 light_color = Color(1, 0.96, 0.88, 1)
 light_energy = 1.35
+shadow_enabled = true
+shadow_caster_mask = 4294967294
 
-[node name="ProceduralTerrain" type="Node3D" parent="."]
+[node name="ProceduralTerrain" type="Node3D" parent="." unique_id=1612962797]
 script = ExtResource("3_terrain")
 
-[node name="EnvironmentVisuals" type="Node3D" parent="."]
+[node name="EnvironmentVisuals" type="Node3D" parent="." unique_id=253189324]
 script = ExtResource("4_environment")
 
-[node name="PlaceholderVehicle" parent="." instance=ExtResource("2_vehicle")]
+[node name="PlaceholderVehicle" parent="." unique_id=794016795 instance=ExtResource("2_vehicle")]
 transform = Transform3D(1, 0, 0, 0, 0.99993354, -0.011526402, 0, 0.011526402, 0.99993354, 0, 1.02, 0.22146821)
 
-[node name="SideCamera" type="Camera3D" parent="."]
+[node name="SideCamera" type="Camera3D" parent="." unique_id=1533802694]
 transform = Transform3D(-4.371139e-08, -0.12403445, 0.9922779, 0, 0.9922779, 0.12403445, -1, 5.421718e-09, -4.3373845e-08, 24, 4, 0)
 projection = 1
 current = true
